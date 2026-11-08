@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="로키 픽업">
+<meta name="theme-color" content="#ffffff">
+<title>로키 픽업</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+:root{--b:#1A5CFF;--b2:#E8EFFF;--t:#111418;--g:#6B7280;--l:#F2F4F6;--line:#E5E8EB;--o:#B54708;--ob:#FFF4E5;--ok:#0F7B3F}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#EEF1F4;color:var(--t);font-family:'Noto Sans KR',-apple-system,sans-serif;font-size:15px}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+#app{position:fixed;inset:0;max-width:520px;margin:0 auto;overflow:hidden;background:#EEF1F4}
+#map{position:absolute;inset:0;z-index:0}
+.screen{position:absolute;inset:0;display:none;z-index:5;pointer-events:none}
+.screen.on{display:block}
+.screen>*{pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;box-shadow:0 -6px 24px rgba(17,20,24,.12);display:flex;flex-direction:column;max-height:100%}
+.full{position:absolute;inset:0;background:#fff;display:flex;flex-direction:column}
+.grab{width:40px;height:4px;border-radius:2px;background:#D7DCE1;align-self:center;margin:10px 0 4px}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+.pad{padding:12px 20px}
+.bar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 12px 10px;background:#fff;border-bottom:1px solid #F0F2F4}
+.bar h2{margin:0;font-size:19px;font-weight:900;flex:1}
+.back{border:none;background:none;font-size:28px;width:44px;height:44px;line-height:1}
+.float{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(17,20,24,.14);display:flex;align-items:center;gap:6px;padding:4px 8px;min-height:54px}
+.btn{border:none;border-radius:16px;background:var(--b);color:#fff;font-weight:700;font-size:17px;min-height:56px;width:100%}
+.btn.sub{background:var(--l);color:var(--t)}
+.btn.sm{min-height:44px;font-size:14px;border-radius:12px;width:auto;padding:0 14px}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}
+.lbl{font-size:13px;color:var(--g);margin:14px 0 6px}
+.h{font-size:16px;font-weight:700;margin:16px 0 8px}
+.inp{width:100%;border:none;background:var(--l);border-radius:12px;padding:13px 14px;font-size:16px}
+.card{background:var(--l);border-radius:14px;padding:12px 14px}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:#fff;border-radius:18px;min-height:36px;padding:0 12px;font-size:13px;margin:0 6px 6px 0}
+.chip.on{border:2px solid var(--b);background:#F3F6FF;color:var(--b);font-weight:700}
+.muted{color:var(--g);font-size:13px}
+.person{display:flex;align-items:center;gap:12px;padding:8px 0}
+.av{width:40px;height:40px;border-radius:20px;background:var(--b2);color:var(--b);font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chk{width:44px;height:44px;border:none;background:none;display:flex;align-items:center;justify-content:center}
+.chk span{width:26px;height:26px;border-radius:13px;border:2px solid #C5CBD2;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.chk.on span{background:var(--b);border-color:var(--b)}
+.list-item{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #F0F2F4}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;flex-shrink:0}
+.tab{flex:0 0 136px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:16px;padding:10px 12px}
+.tab.on{border:2px solid var(--b);background:#F3F6FF}
+.tab .n{font-size:13px;font-weight:700;color:var(--g)}
+.tab.on .n{color:var(--b)}
+.tab .tm{font-size:24px;font-weight:900;letter-spacing:-.5px}
+.tl{display:flex;gap:12px;padding:8px 0;align-items:flex-start}
+.tl .t{width:50px;flex-shrink:0;font-weight:900}
+.gap{display:flex;align-items:center;gap:8px;margin-left:22px;padding:2px 0 2px 36px;border-left:2px dotted #C9D4F0}
+.step{display:flex;align-items:center;background:var(--l);border-radius:12px}
+.step button{border:none;background:none;width:40px;height:40px;font-size:18px}
+.note{font-size:12px;font-weight:700;color:var(--o);background:var(--ob);border-radius:8px;padding:4px 8px;display:inline-block;margin-top:4px}
+.badge{width:30px;height:30px;border-radius:8px;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.banner{background:#FFF4E5;color:var(--o);font-size:13px;padding:8px 12px;border-radius:10px;margin-bottom:8px}
+.overlay{position:absolute;inset:0;background:rgba(17,20,24,.35);z-index:20;display:none}
+.overlay.on{display:block}
+.overlay .sheet{top:90px}
+.pinmark{position:absolute;left:50%;top:50%;transform:translate(-50%,-100%);z-index:6;pointer-events:none;display:flex;flex-direction:column;align-items:center}
+.pinmark .lab{background:var(--t);color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap}
+.pinmark .dot{width:22px;height:22px;border-radius:11px;background:var(--b);border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);margin-top:4px}
+.pinmark .stem{width:3px;height:12px;background:var(--b)}
+.toast{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 100px);transform:translateX(-50%);background:var(--t);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:50;display:none;max-width:90%}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid #fff;border-right-color:transparent;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.leaflet-container{background:#EEF1F4;font-family:inherit}
+.mk{display:flex;align-items:center;justify-content:center;border-radius:13px;border:3px solid var(--b);background:#fff;color:var(--b);font-weight:900;font-size:13px;width:26px;height:26px}
+.mk.home{background:var(--t);border-color:var(--t);color:#fff;width:auto;padding:0 6px;font-size:11px;border-radius:8px}
+.mk.dest{background:var(--b);color:#fff;width:auto;padding:0 6px;font-size:11px;border-radius:8px}
+.mk.wp{border-radius:8px;border:2px solid #fff;color:#fff;font-size:11px}
+.safe-b{padding-bottom:calc(env(safe-area-inset-bottom) + 14px)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="map"></div>
+
+  <!-- 홈 -->
+  <section class="screen" id="s-home">
+    <div class="float"><span style="width:10px;height:10px;border-radius:5px;background:var(--b);margin-left:8px"></span>
+      <button style="flex:1;text-align:left;border:none;background:none;font-size:17px;color:var(--g);min-height:46px" onclick="go('form')">어디로 픽업 가세요?</button>
+      <button class="back" style="font-size:20px" aria-label="설정" onclick="go('settings')">⚙</button>
+    </div>
+    <div class="sheet safe-b" style="max-height:62%">
+      <div class="grab"></div>
+      <div class="scroll pad" id="home-body"></div>
+    </div>
+  </section>
+
+  <!-- 입력 -->
+  <section class="screen" id="s-form">
+    <div class="full">
+      <div class="bar"><button class="back" onclick="go('home')" aria-label="뒤로">‹</button><h2>픽업 스케줄 정하기</h2></div>
+      <div class="scroll pad" id="form-body"></div>
+      <div class="pad safe-b" style="border-top:1px solid #F0F2F4"><button class="btn" id="calc-btn" onclick="runCalc()">경로 계산하기</button></div>
+    </div>
+  </section>
+
+  <!-- 결과 -->
+  <section class="screen" id="s-result">
+    <div class="float">
+      <button class="back" onclick="go('form')" aria-label="뒤로">‹</button>
+      <div style="flex:1;min-width:0"><div id="r-title" style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div><div class="muted" id="r-sub"></div></div>
+    </div>
+    <div class="sheet" id="r-sheet" style="height:58%">
+      <div class="grab" onclick="toggleSheet()"></div>
+      <div class="tabs" id="r-tabs"></div>
+      <div class="scroll" style="padding:0 20px 10px" id="r-body"></div>
+      <div class="row safe-b" style="padding:10px 16px 0;border-top:1px solid #F0F2F4">
+        <button class="btn sub" style="flex:1" onclick="openAdjust()">일정 조율</button>
+        <button class="btn" style="flex:2" onclick="confirmPlan()">이 경로로 확정</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 확정 -->
+  <section class="screen" id="s-done">
+    <div class="sheet safe-b" style="max-height:80%">
+      <div class="grab"></div>
+      <div class="scroll pad" id="done-body"></div>
+    </div>
+  </section>
+
+  <!-- 사람 관리 -->
+  <section class="screen" id="s-people">
+    <div class="full">
+      <div class="bar"><button class="back" onclick="go(peopleBack)" aria-label="뒤로">‹</button><h2>자주 태우는 사람</h2></div>
+      <div class="scroll pad" id="people-body"></div>
+    </div>
+  </section>
+
+  <!-- 사람 편집 -->
+  <section class="screen" id="s-person">
+    <div class="full">
+      <div class="bar"><button class="back" onclick="go('people')" aria-label="뒤로">‹</button><h2 id="pe-title">사람</h2></div>
+      <div class="scroll pad" id="person-body"></div>
+      <div class="pad safe-b" style="border-top:1px solid #F0F2F4"><button class="btn" onclick="savePerson()">저장</button></div>
+    </div>
+  </section>
+
+  <!-- 설정 -->
+  <section class="screen" id="s-settings">
+    <div class="full">
+      <div class="bar"><button class="back" onclick="go('home')" aria-label="뒤로">‹</button><h2>설정</h2></div>
+      <div class="scroll pad" id="settings-body"></div>
+      <div class="pad safe-b" style="border-top:1px solid #F0F2F4"><button class="btn" onclick="saveSettings()">저장</button></div>
+    </div>
+  </section>
+
+  <!-- 핀 찍기 -->
+  <section class="screen" id="s-pin">
+    <div class="pinmark"><div class="lab">여기서 탑승</div><div class="dot"></div><div class="stem"></div></div>
+    <div class="float"><button class="back" onclick="pinCancel()" aria-label="닫기">‹</button><div style="flex:1;font-weight:700">지도를 끌어서 정확한 위치에 맞추세요</div></div>
+    <div class="sheet safe-b pad">
+      <div class="lbl" style="margin-top:0">이 장소 이름</div>
+      <input class="inp" id="pin-name" placeholder="예) 동래역 4번 출구 옆 골목">
+      <div class="lbl">찾아오는 법 메모 (선택)</div>
+      <input class="inp" id="pin-memo" placeholder="예) GS25 지나서 오른쪽 골목">
+      <div style="height:12px"></div>
+      <button class="btn" onclick="pinOk()">이 위치로 정하기</button>
+    </div>
+  </section>
+
+  <!-- 검색 시트 -->
+  <div class="overlay" id="ov-search"><div class="sheet safe-b">
+    <div class="row pad" style="padding-top:16px"><b style="flex:1;font-size:19px" id="se-title">장소 검색</b><button class="btn sub sm" onclick="closeOv('ov-search')">닫기</button></div>
+    <div class="pad" style="padding-top:0"><div class="row"><input class="inp" id="se-q" placeholder="장소, 주소, 역 이름" onkeydown="if(event.key==='Enter')doSearch()"><button class="btn sm" onclick="doSearch()">검색</button></div>
+    <button class="chip" style="margin-top:10px" onclick="searchToPin()">지도에서 직접 찍기</button></div>
+    <div class="scroll pad" id="se-list" style="padding-top:0"></div>
+  </div></div>
+
+  <!-- 조율 시트 -->
+  <div class="overlay" id="ov-adjust"><div class="sheet safe-b">
+    <div class="row pad" style="padding-top:16px"><b style="flex:1;font-size:19px">픽업 일정 조율</b><button class="btn sub sm" onclick="closeOv('ov-adjust')">닫기</button></div>
+    <div class="muted" style="padding:0 20px">바뀐 사람만 바꿔주세요</div>
+    <div class="scroll pad" id="adj-body"></div>
+    <div class="pad"><button class="btn" onclick="closeOv('ov-adjust');runCalc()">다시 계산하기</button></div>
+  </div></div>
+
+  <!-- 경유지 시트 -->
+  <div class="overlay" id="ov-wp"><div class="sheet safe-b">
+    <div class="row pad" style="padding-top:16px"><b style="flex:1;font-size:19px">경유지 추가</b><button class="btn sub sm" onclick="closeOv('ov-wp')">닫기</button></div>
+    <div class="row" style="padding:0 20px" id="wp-cats"></div>
+    <div class="pad" style="padding-bottom:4px"><input class="inp" id="wp-q" placeholder="이름으로 걸러보기" oninput="renderWp()"></div>
+    <div class="row" style="padding:0 20px;gap:14px" id="wp-sort"></div>
+    <div class="scroll pad" id="wp-list" style="padding-top:0"></div>
+  </div></div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+'use strict';
+// ---------- 저장소 ----------
+const S={get(k,d){try{const v=localStorage.getItem('rp_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('rp_'+k,JSON.stringify(v))}catch(e){}}};
+let settings=Object.assign({appKey:'',kakaoKey:'',home:null,kmpl:11,fuel:1650,stopMin:3,sepMin:40,vehicle:''},S.get('settings',{}));
+let people=S.get('people',[]);
+let schedules=S.get('schedules',[]);
+let job=S.get('job',null)||newJob();
+let plans=null, curPlan=1, peopleBack='home';
+function newJob(){const d=new Date();d.setDate(d.getDate()+1);return{dest:null,date:d.toISOString().slice(0,10),time:'11:00',ids:[],off:{},spot:{},buf:{},wps:[]}}
+function saveJob(){S.set('job',job)}
+const uid=()=>Math.random().toString(36).slice(2,9);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m,ms){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms||2200)}
+const hm=d=>String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+const mins=s=>Math.round(s/60);
+function dur(s){const m=Math.round(s/60);return m>=60?Math.floor(m/60)+'시간 '+(m%60?m%60+'분':''):m+'분'}
+const won=n=>Math.round(n).toLocaleString('ko-KR')+'원';
+function km(a,b){const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r;const x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+const demo=()=>!settings.appKey;
+
+// ---------- 티맵 API ----------
+const API={
+  base:'https://apis.openapi.sk.com',
+  h(){return{appKey:settings.appKey,'Content-Type':'application/json',Accept:'application/json'}},
+  parsePoi(p){return{name:p.name,addr:[p.upperAddrName,p.middleAddrName,p.lowerAddrName,p.detailAddrName].filter(Boolean).join(' ')+(p.firstNo?' '+p.firstNo+(p.secondNo&&p.secondNo!=='0'?'-'+p.secondNo:''):''),lat:+(p.frontLat||p.noorLat),lon:+(p.frontLon||p.noorLon),tel:p.telNo||''}},
+  async poi(q){
+    if(demo()){const c=settings.home||{lat:35.1578,lon:129.0590};return[0,1,2].map(i=>({name:q+(i?' '+(i+1):''),addr:'예시 모드 주소',lat:c.lat+0.02*(i+1),lon:c.lon-0.03*(i+1)}))}
+    const r=await fetch(this.base+'/tmap/pois?version=1&count=10&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&searchKeyword='+encodeURIComponent(q),{headers:{appKey:settings.appKey}});
+    if(r.status===204)return[];
+    if(!r.ok)throw new Error('검색 실패 ('+r.status+')');
+    const j=await r.json();return((j.searchPoiInfo&&j.searchPoiInfo.pois&&j.searchPoiInfo.pois.poi)||[]).map(p=>this.parsePoi(p));
+  },
+  async around(c,cat){
+    if(demo()){return[1,2,3].map(i=>({name:cat+' 예시 '+i,addr:'예시',lat:c.lat+0.003*i,lon:c.lon+0.002*i,tel:''}))}
+    const r=await fetch(this.base+'/tmap/pois/search/around?version=1&count=8&radius=1&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&centerLat='+c.lat+'&centerLon='+c.lon+'&categories='+encodeURIComponent(cat),{headers:{appKey:settings.appKey}});
+    if(r.status===204)return[];if(!r.ok)return[];
+    const j=await r.json();return((j.searchPoiInfo&&j.searchPoiInfo.pois&&j.searchPoiInfo.pois.poi)||[]).map(p=>this.parsePoi(p));
+  },
+  cache:S.get('legcache',{}),
+  async car(a,b){
+    const key=[a.lat,a.lon,b.lat,b.lon].map(v=>(+v).toFixed(4)).join(',');
+    if(this.cache[key]&&Date.now()-this.cache[key].at<6*3600e3)return this.cache[key];
+    let out;
+    if(demo()){const d=km(a,b)*1.3;out={sec:Math.round(d/32*3600+120),m:d*1000,toll:0,taxi:3800+d*1000/131*100,line:[[a.lat,a.lon],[b.lat,b.lon]]}}
+    else{
+      const r=await fetch(this.base+'/tmap/routes?version=1',{method:'POST',headers:this.h(),body:JSON.stringify({startX:''+a.lon,startY:''+a.lat,endX:''+b.lon,endY:''+b.lat,reqCoordType:'WGS84GEO',resCoordType:'WGS84GEO',searchOption:'0'})});
+      if(!r.ok)throw new Error('길찾기 실패 ('+r.status+')');
+      const j=await r.json();const p=j.features[0].properties;const line=[];
+      j.features.forEach(f=>{if(f.geometry.type==='LineString')f.geometry.coordinates.forEach(c=>line.push([c[1],c[0]]))});
+      out={sec:p.totalTime,m:p.totalDistance,toll:p.totalFare||0,taxi:p.taxiFare||0,line};
+    }
+    out.at=Date.now();this.cache[key]=out;
+    const ks=Object.keys(this.cache);if(ks.length>300)ks.slice(0,100).forEach(k=>delete this.cache[k]);
+    S.set('legcache',this.cache);return out;
+  },
+  // 도착 시각을 정하고, 그 시간대 평균 교통량으로 출발 시각 예측 (경유지 최대 5곳)
+  async arriveBy(a,b,vias,arrive){
+    if(demo())return null;
+    const pad=n=>String(n).padStart(2,'0');
+    const t=`${arrive.getFullYear()}-${pad(arrive.getMonth()+1)}-${pad(arrive.getDate())}T${pad(arrive.getHours())}:${pad(arrive.getMinutes())}:00+0900`;
+    const ri={departure:{name:'출발',lon:''+a.lon,lat:''+a.lat},destination:{name:'도착',lon:''+b.lon,lat:''+b.lat},predictionType:'departure',predictionTime:t,searchOption:'00'};
+    if(vias.length)ri.wayPoints={wayPoint:vias.slice(0,5).map(v=>({lon:''+v.lon,lat:''+v.lat}))};
+    const r=await fetch(this.base+'/tmap/routes/prediction?version=1&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&sort=index',{method:'POST',headers:this.h(),body:JSON.stringify({routesInfo:ri})});
+    if(!r.ok)return null;
+    const j=await r.json();const p=j.features&&j.features[0]&&j.features[0].properties;if(!p)return null;
+    return{sec:p.totalTime,m:p.totalDistance,toll:p.totalFare||0,departure:new Date(p.departureTime.replace(/(\d{2})(\d{2})$/,'$1:$2'))};
+  },
+  transitOk:true,
+  async transit(a,b){
+    const est=()=>{const d=km(a,b);return{sec:Math.round(d*1.25/20*3600+12*60),fare:d>10?1750:1550,est:true,text:'대중교통 예상 (어림값)'}};
+    if(settings.kakaoKey){
+      try{
+        const r=await fetch('https://dapi.kakao.com/v2/routing/publictraffic?start_x='+a.lon+'&start_y='+a.lat+'&end_x='+b.lon+'&end_y='+b.lat,{headers:{Authorization:'KakaoAK '+settings.kakaoKey}});
+        if(r.ok){const j=await r.json();const rs=(j.routes||[]).filter(x=>x.properties&&x.properties.totalTime);
+          if(rs.length){rs.sort((x,y)=>x.properties.totalTime-y.properties.totalTime);const it=rs[0];
+            const legs=(it.steps||[]).filter(st=>st.properties&&st.properties.type!=='WALKING').map(st=>{const v=(st.properties.vehicles||[])[0];const stops=st.properties.stops||[];return(st.properties.type==='SUBWAY'?'지하철 ':'버스 ')+(v?v.name:'')+(stops.length?' '+stops[0].name+'→'+stops[stops.length-1].name:'')});
+            return{sec:it.properties.totalTime,fare:it.properties.fare?it.properties.fare.value:0,transfers:it.properties.transfers,text:legs.join(' · ')||'도보'}}}
+        else this.kakaoErr=r.status;
+      }catch(e){this.kakaoErr='연결 실패'}
+    }
+    if(demo()||!this.transitOk)return est();
+    try{
+      const r=await fetch(this.base+'/transit/routes',{method:'POST',headers:this.h(),body:JSON.stringify({startX:''+a.lon,startY:''+a.lat,endX:''+b.lon,endY:''+b.lat,count:3,lang:0,format:'json'})});
+      if(r.status===403){this.transitOk=false;return est()}
+      if(!r.ok)return est();
+      const j=await r.json();const its=j.metaData&&j.metaData.plan&&j.metaData.plan.itineraries;if(!its||!its.length)return est();
+      its.sort((x,y)=>x.totalTime-y.totalTime);const it=its[0];
+      const legs=(it.legs||[]).filter(l=>l.mode!=='WALK').map(l=>(l.mode==='SUBWAY'?'지하철 ':l.mode==='BUS'?'버스 ':'')+(l.route||'')+' '+(l.start&&l.start.name||'')+'→'+(l.end&&l.end.name||''));
+      return{sec:it.totalTime,fare:it.fare&&it.fare.regular?it.fare.regular.totalFare:0,transfers:it.transferCount,text:legs.join(' · ')||'도보'};
+    }catch(e){return est()}
+  }
+};
+// 카카오맵 앱/웹에서 대중교통 길 바로 보기 (키 없이 됨)
+function transitLink(fromName,f,toName,t){return'https://map.kakao.com/link/by/traffic/'+encodeURIComponent(fromName)+','+f.lat+','+f.lon+'/'+encodeURIComponent(toName)+','+t.lat+','+t.lon}
+
+// ---------- 지도 ----------
+let map,layer,pinCb=null;
+function initMap(){
+  const c=settings.home||{lat:35.1578,lon:129.0590};
+  map=L.map('map',{zoomControl:false,attributionControl:true}).setView([c.lat,c.lon],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  layer=L.layerGroup().addTo(map);
+}
+const icon=(html,cls)=>L.divIcon({html:`<div class="mk ${cls||''}">${html}</div>`,className:'',iconSize:null});
+function drawPlan(p){
+  layer.clearLayers();if(!p)return;
+  const pts=[];
+  p.legs.forEach(l=>{if(l.line&&l.line.length){L.polyline(l.line,{color:'#fff',weight:10,opacity:.9}).addTo(layer);L.polyline(l.line,{color:'#1A5CFF',weight:6}).addTo(layer);l.line.forEach(x=>pts.push(x))}});
+  L.marker([job.from.lat,job.from.lon],{icon:icon('집','home')}).addTo(layer);
+  L.marker([job.dest.lat,job.dest.lon],{icon:icon('도착','dest')}).addTo(layer);
+  p.stops.forEach((s,i)=>L.marker([s.spot.lat,s.spot.lon],{icon:icon(i+1)}).addTo(layer));
+  pts.push([job.from.lat,job.from.lon],[job.dest.lat,job.dest.lon]);
+  const h=$('r-sheet').offsetHeight||400;
+  map.fitBounds(L.latLngBounds(pts),{paddingTopLeft:[30,90],paddingBottomRight:[30,h+20]});
+}
+
+// ---------- 화면 전환 ----------
+let cur='home';
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  $('s-'+n).classList.add('on');cur=n;
+  if(n!=='result'&&n!=='done')layer&&layer.clearLayers();
+  const R={home:renderHome,form:renderForm,people:renderPeople,settings:renderSettings,result:renderResult,done:renderDone}[n];
+  if(R)R();
+  setTimeout(()=>map&&map.invalidateSize(),50);
+}
+function openOv(id){$(id).classList.add('on')}
+function closeOv(id){$(id).classList.remove('on')}
+
+// ---------- 홈 ----------
+function renderHome(){
+  const up=schedules.filter(s=>new Date(s.arrive)>new Date(Date.now()-864e5)).sort((a,b)=>new Date(a.arrive)-new Date(b.arrive));
+  let h='';
+  if(demo())h+=`<div class="banner">예시 모드예요. 설정에서 티맵 키를 넣으면 실제 길·교통량으로 계산돼요.</div>`;
+  if(!settings.home)h+=`<div class="banner">먼저 설정에서 <b>집(출발지)</b>을 정해주세요.</div>`;
+  h+=`<div class="muted">대표님, 다음 공연 픽업 정해볼까요?</div><div style="height:10px"></div>
+  <button class="btn" onclick="startNew()">픽업 스케줄 정하기</button>
+  <div class="h">내 픽업 일정</div>`;
+  if(!up.length)h+=`<div class="card muted">아직 확정된 픽업이 없어요</div>`;
+  up.forEach(s=>{const a=new Date(s.arrive),d=new Date(s.depart);h+=`<button class="card" style="width:100%;text-align:left;border:none;margin-bottom:8px;display:flex;gap:14px;align-items:center" onclick="openSchedule('${s.id}')">
+  <div style="text-align:center;min-width:44px"><div class="muted">${a.getMonth()+1}월</div><div style="font-size:24px;font-weight:900">${a.getDate()}</div></div>
+  <div style="min-width:0"><div style="font-weight:700">${hm(d)} 집 출발 → ${hm(a)} 도착</div><div class="muted">${esc(s.destName)} · ${esc(s.planName)} · ${s.pick}명 픽업</div></div></button>`});
+  h+=`<div class="row" style="margin-top:14px"><button class="btn sub" style="flex:1" onclick="peopleBack='home';go('people')">자주 태우는 사람</button><button class="btn sub" style="flex:1" onclick="go('settings')">설정</button></div>`;
+  $('home-body').innerHTML=h;
+}
+function startNew(){if(!settings.home){toast('설정에서 집(출발지)을 먼저 정해주세요');go('settings');return}job=newJob();saveJob();go('form')}
+
+// ---------- 입력 ----------
+function renderForm(){
+  const from=settings.home;
+  let h=`<div class="lbl" style="margin-top:4px">출발</div>
+  <div class="card row"><span style="width:10px;height:10px;border-radius:5px;background:var(--t)"></span><span style="flex:1">${esc(job.from?job.from.name:(from?from.name:'집'))}</span><button class="btn sub sm" style="background:#fff" onclick="pickPlace('from')">수정</button></div>
+  <div class="lbl">도착</div>
+  <div class="card row"><span style="width:10px;height:10px;border-radius:5px;background:var(--b)"></span><span style="flex:1;font-weight:700">${job.dest?esc(job.dest.name):'<span class="muted">목적지를 검색하세요</span>'}</span><button class="btn sm" onclick="pickPlace('dest')">${job.dest?'변경':'검색'}</button></div>
+  <div class="h">몇 시까지 도착할까요?</div>
+  <div class="row"><input class="inp" type="date" value="${job.date}" onchange="job.date=this.value;saveJob()"><input class="inp" type="time" value="${job.time}" style="font-weight:900;color:var(--b);background:var(--b2)" onchange="job.time=this.value;saveJob()"></div>
+  <div class="h">누구를 태울까요?</div>`;
+  if(!people.length)h+=`<div class="muted" style="margin-bottom:8px">아직 등록된 사람이 없어요</div>`;
+  people.forEach(p=>{const on=job.ids.includes(p.id);const sp=p.spots[0];h+=`<div class="person"><div class="av">${esc(p.name[0]||'?')}</div><div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div class="muted">${sp?esc(sp.name):'장소 없음'}${p.spots.length>1?' 외 '+(p.spots.length-1)+'곳':''}</div></div><button class="chk ${on?'on':''}" aria-label="${esc(p.name)} 선택" onclick="togglePick('${p.id}')"><span>${on?'✓':''}</span></button></div>`});
+  h+=`<button class="btn sub" style="border:1px dashed #C5CBD2;background:#fff;color:var(--b);margin-top:6px" onclick="newPerson(true)">+ 새로 태울 사람 추가</button>`;
+  $('form-body').innerHTML=h;
+}
+function togglePick(id){const i=job.ids.indexOf(id);i<0?job.ids.push(id):job.ids.splice(i,1);saveJob();renderForm()}
+
+// ---------- 장소 검색 / 핀 ----------
+let searchCb=null;
+function pickPlace(kind,cb){
+  searchCb=cb||(pl=>{job[kind]=pl;saveJob();renderForm()});
+  $('se-title').textContent=kind==='dest'?'도착지 검색':kind==='from'?'출발지 검색':'장소 검색';
+  $('se-q').value='';$('se-list').innerHTML='';openOv('ov-search');setTimeout(()=>$('se-q').focus(),100);
+}
+async function doSearch(){
+  const q=$('se-q').value.trim();if(!q)return;
+  $('se-list').innerHTML='<div class="muted">찾는 중...</div>';
+  try{const r=await API.poi(q);window._se=r;
+    $('se-list').innerHTML=r.length?r.map((p,i)=>`<button class="list-item" style="width:100%;text-align:left;border:none;border-bottom:1px solid #F0F2F4;background:none" onclick="pickResult(${i})"><div style="min-width:0"><b>${esc(p.name)}</b><div class="muted">${esc(p.addr)}</div></div></button>`).join(''):'<div class="muted">결과가 없어요. 지도에서 직접 찍어보세요.</div>';
+  }catch(e){$('se-list').innerHTML='<div class="banner">'+esc(e.message)+'</div>'}
+}
+function pickResult(i){const p=window._se[i];closeOv('ov-search');searchCb&&searchCb({name:p.name,addr:p.addr,lat:p.lat,lon:p.lon,tel:p.tel})}
+let pinPrev=null;
+function searchToPin(){closeOv('ov-search');openPin(null,searchCb)}
+function openPin(start,cb){
+  pinPrev=cur;pinCb=cb;layer.clearLayers();
+  const c=start||settings.home||{lat:35.1578,lon:129.0590};map.setView([c.lat,c.lon],17);
+  $('pin-name').value=start&&start.name||'';$('pin-memo').value=start&&start.memo||'';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));$('s-pin').classList.add('on');cur='pin';
+  setTimeout(()=>map.invalidateSize(),50);
+}
+function pinOk(){
+  const sz=map.getSize();const ll=map.containerPointToLatLng([sz.x/2,sz.y/2]);
+  const name=$('pin-name').value.trim()||'지도에서 찍은 위치';
+  const pl={name,addr:'',lat:+ll.lat.toFixed(6),lon:+ll.lng.toFixed(6),memo:$('pin-memo').value.trim()};
+  go(pinPrev||'home');pinCb&&pinCb(pl);
+}
+function pinCancel(){go(pinPrev||'home')}
+
+// ---------- 사람 ----------
+let editing=null,editFromForm=false;
+function renderPeople(){
+  let h='';if(!people.length)h+='<div class="muted">아직 없어요. 아래에서 추가하세요.</div>';
+  people.forEach(p=>{h+=`<button class="list-item" style="width:100%;text-align:left;border:none;border-bottom:1px solid #F0F2F4;background:none" onclick="editPerson('${p.id}')"><div class="av">${esc(p.name[0]||'?')}</div><div style="flex:1;min-width:0"><b>${esc(p.name)}</b><div class="muted">${p.spots.map(s=>esc(s.label||s.name)).join(' · ')||'장소 없음'}</div></div><span class="muted">›</span></button>`});
+  h+=`<div style="height:12px"></div><button class="btn" onclick="newPerson(false)">+ 사람 추가</button>`;
+  $('people-body').innerHTML=h;
+}
+function newPerson(fromForm){editFromForm=fromForm;editing={id:uid(),name:'',phone:'',spots:[],save:true,isNew:true};$('pe-title').textContent='새로 태울 사람';renderPerson();go('person')}
+function editPerson(id){editFromForm=false;editing=JSON.parse(JSON.stringify(people.find(p=>p.id===id)));editing.save=true;$('pe-title').textContent=editing.name;renderPerson();go('person')}
+function renderPerson(){
+  const e=editing;let h=`<div class="lbl" style="margin-top:4px">이름</div><input class="inp" value="${esc(e.name)}" oninput="editing.name=this.value" placeholder="예) 김○○">
+  <div class="lbl">연락처 (선택)</div><input class="inp" type="tel" value="${esc(e.phone)}" oninput="editing.phone=this.value" placeholder="010-0000-0000">
+  <div class="h">픽업 장소 <span class="muted">(첫 번째가 기본)</span></div>`;
+  e.spots.forEach((s,i)=>{h+=`<div class="card" style="margin-bottom:8px"><div class="row"><input class="inp" style="background:#fff;padding:9px 10px;font-weight:700" value="${esc(s.label||'')}" placeholder="이름 (집, 학원, 역...)" oninput="editing.spots[${i}].label=this.value"><button class="btn sub sm" style="background:#fff" onclick="editing.spots.splice(${i},1);renderPerson()">삭제</button></div>
+  <div class="muted" style="margin-top:6px">${esc(s.name)}${s.memo?' · '+esc(s.memo):''}</div>
+  <div class="row" style="margin-top:6px">${i>0?`<button class="chip" onclick="const x=editing.spots.splice(${i},1)[0];editing.spots.unshift(x);renderPerson()">기본으로</button>`:'<span class="chip on">기본</span>'}<button class="chip" onclick="openPin(editing.spots[${i}],pl=>{Object.assign(editing.spots[${i}],{name:pl.name,lat:pl.lat,lon:pl.lon,memo:pl.memo});go('person')})">지도에서 위치 고치기</button></div></div>`});
+  h+=`<button class="btn sub" style="border:1px dashed #C5CBD2;background:#fff;color:var(--b)" onclick="pickPlace('spot',pl=>{editing.spots.push({label:editing.spots.length?'':'집',name:pl.name,addr:pl.addr,lat:pl.lat,lon:pl.lon,memo:pl.memo||''});go('person');renderPerson()})">+ 픽업 장소 추가 (검색·핀)</button>`;
+  if(e.isNew&&editFromForm)h+=`<button class="row" style="border:none;background:none;margin-top:12px;min-height:44px" onclick="editing.save=!editing.save;renderPerson()"><span class="chk ${e.save?'on':''}" style="width:30px;height:30px"><span>${e.save?'✓':''}</span></span>자주 태우는 사람에 저장</button>`;
+  if(!e.isNew)h+=`<button class="btn sub" style="margin-top:20px;color:#C0362C" onclick="delPerson()">이 사람 삭제</button>`;
+  $('person-body').innerHTML=h;
+}
+function savePerson(){
+  const e=editing;if(!e.name.trim()){toast('이름을 넣어주세요');return}if(!e.spots.length){toast('픽업 장소를 하나 이상 넣어주세요');return}
+  const p={id:e.id,name:e.name.trim(),phone:e.phone,spots:e.spots,temp:e.isNew&&editFromForm&&!e.save};
+  const i=people.findIndex(x=>x.id===p.id);i<0?people.push(p):people[i]=p;S.set('people',people);
+  if(editFromForm){if(!job.ids.includes(p.id))job.ids.push(p.id);saveJob();go('form')}else go('people');
+}
+function delPerson(){people=people.filter(p=>p.id!==editing.id);S.set('people',people);go('people')}
+
+// ---------- 설정 ----------
+function renderSettings(){
+  const s=settings;
+  $('settings-body').innerHTML=`<div class="lbl" style="margin-top:4px">티맵 앱 키 (SK open API)</div><input class="inp" id="st-key" value="${esc(s.appKey)}" placeholder="비워두면 예시 모드" autocapitalize="off" autocomplete="off">
+  <div class="lbl">집 (기본 출발지)</div><div class="card row"><span style="flex:1">${s.home?esc(s.home.name):'<span class="muted">정해주세요</span>'}</span><button class="btn sm" onclick="pickPlace('home',pl=>{settings.home=pl;S.set('settings',settings);renderSettings()})">${s.home?'변경':'검색'}</button></div>
+  <div class="row"><div style="flex:1"><div class="lbl">내 차 연비 (km/L)</div><input class="inp" id="st-kmpl" type="number" step="0.1" value="${s.kmpl}"></div><div style="flex:1"><div class="lbl">기름값 (원/L)</div><input class="inp" id="st-fuel" type="number" value="${s.fuel}"></div></div>
+  <div class="row"><div style="flex:1"><div class="lbl">한 명 태울 때 정차 (분)</div><input class="inp" id="st-stop" type="number" value="${s.stopMin}"></div><div style="flex:1"><div class="lbl">따로 오기 추천 기준 (분)</div><input class="inp" id="st-sep" type="number" value="${s.sepMin}"></div></div>
+  <div class="muted" style="margin-top:10px">따로 오기 기준: 차에 타는 시간이 대중교통보다 이만큼 이상 길면 "따로 오는 게 낫다"고 알려줘요.</div>`;
+}
+function saveSettings(){
+  settings.appKey=$('st-key').value.trim();settings.kmpl=+$('st-kmpl').value||11;settings.fuel=+$('st-fuel').value||1650;settings.stopMin=+$('st-stop').value||3;settings.sepMin=+$('st-sep').value||40;
+  S.set('settings',settings);API.cache={};S.set('legcache',{});API.transitOk=true;toast('저장했어요');go('home');
+}
+
+// ---------- 계산 ----------
+function perms(a){if(a.length<=1)return[a.slice()];const o=[];a.forEach((x,i)=>{perms(a.slice(0,i).concat(a.slice(i+1))).forEach(p=>o.push([x].concat(p)))});return o}
+function arriveDate(){const[h,m]=job.time.split(':').map(Number);const d=new Date(job.date+'T00:00:00');d.setHours(h,m,0,0);return d}
+async function runCalc(){
+  if(!job.dest){toast('도착지를 정해주세요');return}
+  job.from=job.from||settings.home;if(!job.from){toast('설정에서 집을 정해주세요');return}
+  const sel=people.filter(p=>job.ids.includes(p.id));
+  const btn=$('calc-btn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> 계산 중...';
+  try{plans=await planAll(sel);curPlan=plans[1]&&plans[1].seq.length?1:0;saveJob();go('result')}
+  catch(e){console.error(e);toast('계산 중 문제가 생겼어요: '+e.message,4000)}
+  finally{btn.disabled=false;btn.textContent='경로 계산하기'}
+}
+async function planAll(sel){
+  const H=job.from,D=job.dest,arrive=arriveDate(),stopS=settings.stopMin*60;
+  const base=await API.car(H,D);
+  const kpk=base.sec/Math.max(0.5,km(H,D)); // 초/km 보정값
+  const est=(a,b)=>Math.max(90,km(a,b)*kpk*1.05);
+  // 대중교통 (집 → 도착)
+  const tr={};for(const p of sel){tr[p.id]=await API.transit(p.spots[0],D)}
+  window._trc=tr;
+  // 후보 장소: 본인 장소들 + 1.5km 안에 사는 다른 사람 집
+  const cands={};sel.forEach(p=>{cands[p.id]=p.spots.map((s,i)=>({s,label:i?(s.label||s.name):((s.label&&s.label!=='집')?s.label:'집 앞'),kind:i?'spot':'home'}));sel.forEach(q=>{if(q!==p&&km(p.spots[0],q.spots[0])<1.5)cands[p.id].push({s:q.spots[0],label:q.name+' 집 앞',kind:'other',with:q.name})})});
+  const fixedSpot=p=>{const i=job.spot[p.id];return i!=null&&p.spots[i]?{s:p.spots[i],label:p.spots[i].label||p.spots[i].name,kind:i?'spot':'home'}:null};
+  function bestOrder(list,spotOf){let best=null;for(const o of perms(list)){let t=0,prev=H;for(const p of o){const s=spotOf(p);t+=est(prev,s.s)+stopS;prev=s.s}t+=est(prev,D);if(!best||t<best.t)best={t,o}}return best?best.o:[]}
+  async function build(key,name,desc,riders,spotOf,selfs){
+    const order=bestOrder(riders,spotOf);
+    const seq=order.map(p=>({p,c:spotOf(p)}));
+    // 같은 장소에서 함께 타는 경우 묶기
+    const pts=[H].concat(seq.map(x=>x.c.s)).concat([D]);
+    const legs=[];for(let i=0;i<pts.length-1;i++){legs.push(km(pts[i],pts[i+1])<0.05?{sec:0,m:0,toll:0,line:[]}:await API.car(pts[i],pts[i+1]))}
+    return{key,name,desc,seq,legs,selfs:selfs.map(p=>({p,tr:tr[p.id]})),pts};
+  }
+  const home=p=>fixedSpot(p)||cands[p.id][0];
+  const riders=sel.filter(p=>!job.off[p.id]),forced=sel.filter(p=>job.off[p.id]);
+  // 최적 픽업: 사람마다 후보 중 운전 시간이 가장 짧아지는 곳 (조합 탐색)
+  let bestCombo=null;const lists=riders.map(p=>fixedSpot(p)?[fixedSpot(p)]:cands[p.id]);
+  let combos=[[]];lists.forEach(l=>{const n=[];combos.forEach(c=>l.forEach(x=>n.push(c.concat([x]))));combos=n.slice(0,4000)});
+  for(const c of combos){const m=new Map(riders.map((p,i)=>[p,c[i]]));const o=bestOrder(riders,p=>m.get(p));let t=0,prev=H;o.forEach(p=>{t+=est(prev,m.get(p).s)+stopS;prev=m.get(p).s});t+=est(prev,D);
+    // 걷기/이동 부담: 집에서 1km 넘게 떨어진 곳은 약간 불리하게
+    c.forEach((x,i)=>{t+=Math.max(0,km(riders[i].spots[0],x.s)-0.8)*240});
+    if(!bestCombo||t<bestCombo.t)bestCombo={t,m}}
+  const P=[];
+  P.push(await build('premium','프리미엄','전원 집 앞',riders,home,forced));
+  P.push(await build('optimal','최적 픽업','역·다른 집에서 만남',riders,p=>bestCombo?bestCombo.m.get(p):home(p),forced));
+  {const a0=finalize(P[0],arrive),a1=finalize(P[1],arrive);if(a1.depart<=a0.depart){P[1]=Object.assign({},P[0],{key:'optimal',name:'최적 픽업',desc:'집 앞 픽업이 제일 빨라요'})}}
+  // 혼합: 프리미엄 기준 차에 너무 오래 타는 사람은 따로
+  const prem=finalize(P[0],arrive,0);const sepS=settings.sepMin*60;
+  const sepIds=prem.stops.filter(s=>s.ride-(tr[s.p.id].sec)>=sepS).map(s=>s.p.id);
+  P.push(await build('mixed','혼합',sepIds.length?'오래 타는 사람은 따로':'따로 올 사람 없음',riders.filter(p=>!sepIds.includes(p.id)),home,forced.concat(riders.filter(p=>sepIds.includes(p.id)))));
+  P.push(await build('solo','각자 이동','전원 대중교통',[],home,sel));
+  // 시간대 교통량 반영 (경유지 포함 예측)
+  for(const p of P){
+    const vias=p.pts.slice(1,-1);
+    try{const pr=await API.arriveBy(H,D,vias,arrive);if(pr){const normal=p.legs.reduce((a,l)=>a+l.sec,0);p.tf=normal?Math.min(2,Math.max(0.7,pr.sec/normal)):1;p.toll=pr.toll}else p.tf=1}catch(e){p.tf=1}
+  }
+  return P;
+}
+// 출발·도착 시각 계산 (여유 시간·경유지 포함)
+function finalize(p,arrive,idx){
+  arrive=arrive||arriveDate();const stopS=settings.stopMin*60,tf=p.tf||1;
+  const n=p.seq.length;const buf=(job.buf[p.key]||{});const wps=(job.wps||[]).filter(w=>w.plan===p.key);
+  const extra=[];for(let g=0;g<=n;g++){extra[g]=(buf[g]||0)*60;wps.filter(w=>w.gap===g).forEach(w=>extra[g]+=w.extra)}
+  // 같은 장소 연속 탑승은 정차 1번만
+  const stopAt=i=>i>0&&p.legs[i].sec===0?0:stopS;
+  let total=0;p.legs.forEach(l=>total+=l.sec*tf);for(let i=0;i<n;i++)total+=stopAt(i);extra.forEach(e=>total+=e);
+  const depart=new Date(arrive.getTime()-total*1000);
+  let t=depart.getTime();const times=[];
+  for(let i=0;i<n;i++){t+=extra[i]*1000;t+=p.legs[i].sec*tf*1000;times.push(new Date(t));t+=stopAt(i)*1000}
+  const stops=p.seq.map((x,i)=>({p:x.p,c:x.c,spot:x.c.s,time:times[i],ride:(arrive-times[i])/1000}));
+  const m=p.legs.reduce((a,l)=>a+l.m,0);
+  const driveS=total-n*stopS;
+  return{depart,arrive,stops,meters:m,driveS,fuel:m/1000/settings.kmpl*settings.fuel,toll:p.toll!=null?p.toll:p.legs.reduce((a,l)=>a+(l.toll||0),0),extra,wps,n};
+}
+
+// ---------- 결과 ----------
+function renderResult(){
+  if(!plans){go('form');return}
+  const arrive=arriveDate();
+  $('r-title').textContent=(job.from.name||'집')+' → '+job.dest.name;
+  $('r-sub').textContent=`${arrive.getMonth()+1}/${arrive.getDate()} ${hm(arrive)} 도착 · ${demo()?'예시 모드':'그 시간대 평균 교통량'}`;
+  $('r-tabs').innerHTML=plans.map((p,i)=>{const f=finalize(p,arrive);return`<button class="tab ${i===curPlan?'on':''}" onclick="curPlan=${i};renderResult()"><div class="n">${p.name}</div><div class="tm">${hm(f.depart)}</div><div class="muted">출발 · 운전 ${dur(f.driveS)}</div></button>`}).join('');
+  const p=plans[curPlan],f=finalize(p,arrive);
+  let h=`<div class="muted" style="padding:2px 0 8px">${(f.meters/1000).toFixed(1)}km · 기름값 약 ${won(f.fuel)}${f.toll?' · 통행료 '+won(f.toll):''} · ${esc(p.desc)}</div>`;
+  if(p.selfs.some(x=>x.tr.est))h+=`<div class="banner">대중교통 시간은 어림값이에요. 정확한 버스·지하철은 '대중교통 길 보기'를 누르면 카카오맵에서 바로 보여요.</div>`;
+  h+=`<button class="btn sub" style="border:1px dashed #B9C7E8;background:#F7F9FF;color:var(--b);min-height:48px;font-size:15px;margin-bottom:6px" onclick="openWp()">+ 경유지 추가 (카페 · 식당 · 주유소 · 주차장)</button>`;
+  const ev=(t,title,sub,sub2,note,col)=>`<div class="tl"><span class="t" style="color:${col||'var(--t)'}">${t}</span><div style="flex:1;min-width:0"><b>${title}</b>${sub?`<div class="muted">${sub}</div>`:''}${sub2?`<div class="muted">${sub2}</div>`:''}${note?`<div class="note">${note}</div>`:''}</div></div>`;
+  const names=['집'].concat(f.stops.map(s=>s.p.name)).concat(['도착']);
+  const gapRow=g=>{const v=(job.buf[p.key]||{})[g]||0;return`<div class="gap"><div style="flex:1;min-width:0" class="muted">${esc(names[g])} → ${esc(names[g+1])} 사이 여유</div><div class="step"><button aria-label="줄이기" onclick="setBuf(${g},-5)">−</button><b style="min-width:46px;text-align:center;color:${v?'var(--b)':'var(--g)'}">${v?'+'+v:0}분</b><button style="color:var(--b)" aria-label="늘리기" onclick="setBuf(${g},5)">+</button></div></div>`};
+  const wpRows=g=>f.wps.filter(w=>w.gap===g).map(w=>`<div class="tl" style="align-items:center"><span class="t muted">경유</span><span class="badge" style="background:${CAT[w.cat].c}">${CAT[w.cat].b}</span><div style="flex:1;min-width:0"><b>${esc(w.name)}</b><div class="muted">+${mins(w.extra)}분</div></div><button class="btn sub sm" onclick="rmWp('${w.id}')">빼기</button></div>`).join('');
+  h+=ev(hm(f.depart),'집 출발','','','','var(--b)')+wpRows(0)+gapRow(0);
+  f.stops.forEach((s,i)=>{
+    let sub=esc(s.c.label)+(s.c.s.memo?' · '+esc(s.c.s.memo):''),sub2='',note='';
+    if(s.c.kind!=='home'){const w=km(s.p.spots[0],s.c.s);sub2=w<1.2?`집에서 걸어서 약 ${Math.max(1,Math.round(w*15))}분`:`집에서 약 ${w.toFixed(1)}km 이동`}
+    if(p.key==='premium'||p.key==='optimal'){const T=transitOf(s.p);if(T&&s.ride-T.sec>=settings.sepMin*60){const leave=new Date(f.arrive-T.sec*1000-600e3);const late=Math.round((leave-s.time)/60000);if(late>0)note=`따로 오면 집에서 ${late}분 늦게 나와도 돼요`}}
+    h+=ev(hm(s.time),`${i+1}. ${esc(s.p.name)} 탑승`,sub,sub2,note)+wpRows(i+1)+gapRow(i+1);
+  });
+  h+=ev(hm(f.arrive),esc(job.dest.name)+' 도착','','','','var(--b)');
+  p.selfs.forEach(x=>{const leave=new Date(f.arrive-x.tr.sec*1000-600e3);h+=ev(hm(leave),esc(x.p.name)+' · 따로 이동',`${x.tr.est?'대중교통 약':'대중교통'} ${dur(x.tr.sec)}${x.tr.fare?' · '+won(x.tr.fare):''} (10분 여유 포함 출발)`,(x.tr.text&&!x.tr.est?esc(x.tr.text)+'<br>':'')+`<a href="${transitLink(x.p.name+' 집',x.p.spots[0],job.dest.name,job.dest)}" target="_blank" rel="noopener">대중교통 길 보기 ›</a>`,'','var(--g)')});
+  $('r-body').innerHTML=h;
+  drawPlan({legs:p.legs,stops:f.stops});
+  drawWps(f.wps);
+}
+function transitOf(person){return window._trc&&window._trc[person.id]}
+function setBuf(g,d){const b=job.buf[plans[curPlan].key]=job.buf[plans[curPlan].key]||{};b[g]=Math.max(0,Math.min(90,(b[g]||0)+d));saveJob();renderResult()}
+function toggleSheet(){const s=$('r-sheet');s.style.height=s.style.height==='88%'?'58%':'88%'}
+
+// ---------- 조율 ----------
+function openAdjust(){
+  const sel=people.filter(p=>job.ids.includes(p.id));
+  $('adj-body').innerHTML=sel.map(p=>{const off=!!job.off[p.id],si=job.spot[p.id];return`<div style="padding:12px 0;border-bottom:1px solid #F0F2F4"><div class="row"><b style="flex:1;font-size:17px">${esc(p.name)}</b>
+  <div class="row" style="background:var(--l);border-radius:12px;padding:3px;gap:0"><button class="btn sm" style="min-height:36px;${off?'background:transparent;color:var(--g)':'background:#fff;color:var(--b)'}" onclick="job.off['${p.id}']=false;saveJob();openAdjust()">픽업</button><button class="btn sm" style="min-height:36px;${off?'background:#fff;color:var(--o)':'background:transparent;color:var(--g)'}" onclick="job.off['${p.id}']=true;saveJob();openAdjust()">따로 감</button></div></div>
+  ${off?'':`<div style="margin-top:8px"><button class="chip ${si==null?'on':''}" onclick="delete job.spot['${p.id}'];saveJob();openAdjust()">자동 추천</button>${p.spots.map((s,i)=>`<button class="chip ${si===i?'on':''}" onclick="job.spot['${p.id}']=${i};saveJob();openAdjust()">${esc(s.label||s.name)}</button>`).join('')}<button class="chip" style="border-style:dashed;color:var(--b)" onclick="closeOv('ov-adjust');openPin(null,pl=>{const q=people.find(x=>x.id==='${p.id}');q.spots.push({label:pl.name,name:pl.name,lat:pl.lat,lon:pl.lon,memo:pl.memo});S.set('people',people);job.spot['${p.id}']=q.spots.length-1;saveJob();go('result');openAdjust()})">+ 지도에서 찍기</button></div>`}</div>`}).join('')||'<div class="muted">태울 사람이 없어요</div>';
+  openOv('ov-adjust');
+}
+
+// ---------- 경유지 ----------
+const CAT={cafe:{n:'카페',b:'카',c:'#8B4A1C',q:'카페',stay:7},food:{n:'식당',b:'식',c:'#C2410C',q:'음식점',stay:20},gas:{n:'주유소',b:'주',c:'#0F766E',q:'주유소',stay:6},park:{n:'주차장',b:'P',c:'#1A5CFF',q:'주차장',stay:3}};
+let wpCat='cafe',wpSort='dist',wpRes=[];
+function openWp(){renderWpHead();openOv('ov-wp');loadWp()}
+function renderWpHead(){
+  $('wp-cats').innerHTML=Object.keys(CAT).map(k=>`<button class="btn sm" style="flex:1;${k===wpCat?'background:var(--t);color:#fff':'background:var(--l);color:var(--t)'}" onclick="wpCat='${k}';renderWpHead();loadWp()">${CAT[k].n}</button>`).join('');
+  $('wp-sort').innerHTML=[['dist','가까운 순'],['order','가는 순서']].map(([k,l])=>`<button style="border:none;background:none;min-height:36px;font-weight:${k===wpSort?700:400};color:${k===wpSort?'var(--t)':'var(--g)'}" onclick="wpSort='${k}';renderWpHead();renderWp()">${l}</button>`).join('')+'<span class="muted" style="margin-left:auto">내 경로 위 장소만</span>';
+}
+async function loadWp(){
+  $('wp-list').innerHTML='<div class="muted">경로 주변을 찾는 중...</div>';
+  const p=plans[curPlan];const pts=p.pts;const found=new Map();
+  for(let g=0;g<pts.length-1;g++){
+    const line=p.legs[g].line&&p.legs[g].line.length?p.legs[g].line:[[pts[g].lat,pts[g].lon],[pts[g+1].lat,pts[g+1].lon]];
+    const samples=[0.25,0.5,0.75].map(f=>line[Math.min(line.length-1,Math.floor(line.length*f))]).map(x=>({lat:x[0],lon:x[1]}));
+    for(const c of samples){const r=await API.around(c,CAT[wpCat].q);r.forEach(x=>{const k=x.name+x.lat.toFixed(4);if(found.has(k))return;let best=1e9;line.forEach(q=>{const d=km({lat:q[0],lon:q[1]},x);if(d<best)best=d});found.set(k,Object.assign(x,{gap:g,dist:Math.round(best*1000)}))})}
+  }
+  wpRes=[...found.values()].filter(x=>x.dist<=800);renderWp();
+}
+function renderWp(){
+  const q=$('wp-q').value.trim();const p=plans[curPlan];const names=['집'].concat(p.seq.map(x=>x.p.name));
+  let r=wpRes.filter(x=>!q||x.name.includes(q));r.sort((a,b)=>wpSort==='dist'?a.dist-b.dist:(a.gap-b.gap)||(a.dist-b.dist));
+  window._wpShown=r;
+  $('wp-list').innerHTML=r.length?r.map((x,i)=>{const added=(job.wps||[]).some(w=>w.plan===p.key&&w.name===x.name);return`<div class="list-item"><span class="badge" style="background:${CAT[wpCat].c}">${CAT[wpCat].b}</span><div style="flex:1;min-width:0"><b>${esc(x.name)}</b><div class="muted">경로에서 ${x.dist}m · ${x.gap===0?'첫 픽업 가는 길':esc(names[x.gap])+' 태운 뒤'}</div><div class="muted">${x.tel?esc(x.tel)+' · ':''}들르면 약 +${CAT[wpCat].stay+Math.round(x.dist/250)}분</div></div>${added?'<span class="chip on">추가됨</span>':`<button class="btn sm" onclick="addWp(${i})">추가</button>`}</div>`}).join(''):'<div class="muted" style="padding:20px 0;text-align:center">경로 위에 맞는 곳이 없어요</div>';
+}
+async function addWp(i){
+  const x=window._wpShown[i],p=plans[curPlan];const a=p.pts[x.gap],b=p.pts[x.gap+1];
+  let extra;try{const l1=await API.car(a,x),l2=await API.car(x,b);extra=Math.max(60,l1.sec+l2.sec-p.legs[x.gap].sec)+CAT[wpCat].stay*60}catch(e){extra=(CAT[wpCat].stay+5)*60}
+  job.wps=job.wps||[];job.wps.push({id:uid(),plan:p.key,gap:x.gap,cat:wpCat,name:x.name,lat:x.lat,lon:x.lon,tel:x.tel,extra});saveJob();renderWp();renderResult();toast(x.name+' 추가 · 출발이 '+mins(extra)+'분 당겨져요');
+}
+function rmWp(id){job.wps=job.wps.filter(w=>w.id!==id);saveJob();renderResult()}
+function drawWps(wps){wps.forEach(w=>L.marker([w.lat,w.lon],{icon:L.divIcon({html:`<div class="mk wp" style="background:${CAT[w.cat].c};width:26px;height:26px">${CAT[w.cat].b}</div>`,className:''})}).addTo(layer))}
+
+// ---------- 확정 / 공유 ----------
+function confirmPlan(){
+  const p=plans[curPlan],f=finalize(p);
+  const id=uid();const d=f.arrive;
+  const s={id,arrive:f.arrive.toISOString(),depart:f.depart.toISOString(),destName:job.dest.name,dest:job.dest,from:job.from,planName:p.name,pick:f.stops.length,
+    drive:f.driveS,meters:f.meters,fuel:f.fuel,toll:f.toll,
+    stops:f.stops.map(x=>({name:x.p.name,phone:x.p.phone,time:x.time.toISOString(),label:x.c.label,lat:x.spot.lat,lon:x.spot.lon,memo:x.spot.memo||''})),
+    selfs:p.selfs.map(x=>({name:x.p.name,leave:new Date(f.arrive-x.tr.sec*1000-600e3).toISOString(),sec:x.tr.sec,fare:x.tr.fare,est:!!x.tr.est,text:x.tr.est?'':x.tr.text,link:transitLink(x.p.name+' 집',x.p.spots[0],job.dest.name,job.dest)})),
+    wps:f.wps.map(w=>({name:w.name,cat:w.cat,lat:w.lat,lon:w.lon,tel:w.tel})),buf:job.buf[p.key]||{}};
+  schedules=schedules.filter(x=>x.arrive!==s.arrive||x.destName!==s.destName);schedules.push(s);S.set('schedules',schedules);
+  // 이번만 태운 사람 정리
+  people=people.filter(x=>!x.temp);S.set('people',people);
+  window._sch=s;go('done');
+}
+function openSchedule(id){window._sch=schedules.find(s=>s.id===id);go('done')}
+function noticeText(s){
+  const a=new Date(s.arrive),d=new Date(s.depart),W='일월화수목금토';
+  let t=`[로키아트 픽업 안내]\n${a.getMonth()+1}/${a.getDate()}(${W[a.getDay()]}) ${s.destName}\n\n■ 현장 도착 ${hm(a)}\n■ 출발 ${hm(d)}\n`;
+  if(s.stops.length){t+='\n■ 픽업\n';s.stops.forEach((x,i)=>{t+=`${i+1}) ${x.name} ${hm(new Date(x.time))} ${x.label}${x.memo?' ('+x.memo+')':''}\n   https://map.kakao.com/link/map/${encodeURIComponent(x.name+' '+x.label)},${x.lat},${x.lon}\n`})}
+  if(s.selfs.length){t+='\n■ 따로 이동\n';s.selfs.forEach(x=>{t+=`- ${x.name}: ${hm(new Date(x.leave))}까지 출발, 대중교통 ${x.est?'약 ':''}${dur(x.sec)}${x.fare?' ('+won(x.fare)+')':''}\n${x.text?'   '+x.text+'\n':''}   길 보기: ${x.link}\n`})}
+  t+=`\n■ 도착지\nhttps://map.kakao.com/link/map/${encodeURIComponent(s.destName)},${s.dest.lat},${s.dest.lon}\n\n늦거나 변동 있으면 바로 연락 주세요.`;
+  return t;
+}
+async function share(text){
+  if(navigator.share){try{await navigator.share({text});return}catch(e){if(e.name==='AbortError')return}}
+  try{await navigator.clipboard.writeText(text);toast('복사했어요. 카톡에 붙여넣으세요')}catch(e){prompt('아래 글을 복사하세요',text)}
+}
+function tmapLink(name,lat,lon){return`tmap://route?goalname=${encodeURIComponent(name)}&goalx=${lon}&goaly=${lat}`}
+function gcalLink(s){
+  const f=d=>{const x=new Date(d);const p=n=>String(n).padStart(2,'0');return`${x.getFullYear()}${p(x.getMonth()+1)}${p(x.getDate())}T${p(x.getHours())}${p(x.getMinutes())}00`};
+  return'https://calendar.google.com/calendar/render?action=TEMPLATE&ctz=Asia/Seoul&text='+encodeURIComponent('픽업 출발 → '+s.destName)+'&dates='+f(s.depart)+'/'+f(s.arrive)+'&details='+encodeURIComponent(noticeText(s));
+}
+function renderDone(){
+  const s=window._sch;if(!s){go('home');return}
+  const a=new Date(s.arrive),d=new Date(s.depart);
+  let h=`<div style="color:var(--b);font-weight:700;font-size:14px">픽업 확정 · 일정표에 기록됐어요</div>
+  <div class="row" style="align-items:baseline"><span style="font-size:40px;font-weight:900;letter-spacing:-1px">${hm(d)}</span><span class="muted" style="font-size:16px">집 출발</span></div>
+  <div class="muted">${a.getMonth()+1}/${a.getDate()} ${hm(a)} ${esc(s.destName)} 도착 · ${esc(s.planName)} · 운전 ${dur(s.drive)} · ${(s.meters/1000).toFixed(1)}km · 기름값 약 ${won(s.fuel)}${s.toll?' · 통행료 '+won(s.toll):''}</div>
+  <div class="h">티맵으로 안내 (순서대로 누르세요)</div>`;
+  const stops=s.stops.map(x=>({n:x.name+' · '+x.label,lat:x.lat,lon:x.lon}));
+  stops.push({n:s.destName+' (도착)',lat:s.dest.lat,lon:s.dest.lon});
+  stops.forEach((x,i)=>{h+=`<a class="list-item" style="text-decoration:none;color:inherit" href="${tmapLink(x.n,x.lat,x.lon)}"><span class="av" style="width:32px;height:32px">${i+1}</span><b style="flex:1">${esc(x.n)}</b><span style="color:var(--b);font-weight:700">안내 ›</span></a>`});
+  h+=`<div style="height:14px"></div><button class="btn" onclick="share(noticeText(window._sch))">단톡방에 픽업 공지 공유</button>
+  <div class="row" style="margin-top:8px"><a class="btn sub" style="flex:1;display:flex;align-items:center;justify-content:center;text-decoration:none" href="${gcalLink(s)}" target="_blank" rel="noopener">구글 캘린더에 넣기</a><button class="btn sub" style="flex:1" onclick="copyAcc()">회계용 복사</button></div>`;
+  if(s.stops.length){h+=`<div class="h">사람별 픽업 위치 보내기</div>`;s.stops.forEach((x,i)=>{h+=`<div class="list-item"><div style="flex:1;min-width:0"><b>${esc(x.name)}</b> <span class="muted">${hm(new Date(x.time))}</span><div class="muted">${esc(x.label)}${x.memo?' · '+esc(x.memo):''}</div></div><button class="btn sub sm" onclick="sharePerson(${i})">위치 공유</button>${x.phone?`<a class="btn sub sm" style="display:flex;align-items:center;text-decoration:none" href="tel:${esc(x.phone)}">전화</a>`:''}</div>`})}
+  h+=`<div class="row" style="margin-top:14px"><button class="btn sub" style="flex:1" onclick="delSchedule()">일정 삭제</button><button class="btn sub" style="flex:1" onclick="go('home')">처음으로</button></div>`;
+  $('done-body').innerHTML=h;
+  layer.clearLayers();const pts=[[s.from.lat,s.from.lon],[s.dest.lat,s.dest.lon]];
+  L.marker(pts[0],{icon:icon('집','home')}).addTo(layer);L.marker(pts[1],{icon:icon('도착','dest')}).addTo(layer);
+  s.stops.forEach((x,i)=>{L.marker([x.lat,x.lon],{icon:icon(i+1)}).addTo(layer);pts.push([x.lat,x.lon])});
+  map.fitBounds(pts,{paddingTopLeft:[30,40],paddingBottomRight:[30,(window.innerHeight*0.6)|0]});
+}
+function sharePerson(i){const s=window._sch,x=s.stops[i],t=new Date(x.time);share(`[픽업 장소 안내]\n${x.name}님 / ${t.getMonth()+1}월 ${t.getDate()}일 ${hm(t)}\n\n${x.label}${x.memo?'\n'+x.memo:''}\n\n▶ 카카오맵에서 위치 보기\nhttps://map.kakao.com/link/map/${encodeURIComponent(x.label)},${x.lat},${x.lon}\n▶ 로드뷰로 실제 모습 보기\nhttps://map.kakao.com/link/roadview/${x.lat},${x.lon}`)}
+function copyAcc(){const s=window._sch,a=new Date(s.arrive);share(`${a.getFullYear()}-${a.getMonth()+1}-${a.getDate()}\t${s.destName}\t운전 ${dur(s.drive)}\t${(s.meters/1000).toFixed(1)}km\t기름값 ${Math.round(s.fuel)}원\t통행료 ${s.toll||0}원`)}
+function delSchedule(){schedules=schedules.filter(x=>x.id!==window._sch.id);S.set('schedules',schedules);go('home')}
+
+// ---------- 시작 ----------
+initMap();go('home');
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
