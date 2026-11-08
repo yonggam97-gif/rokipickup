@@ -205,7 +205,7 @@ button{cursor:pointer}
 'use strict';
 // ---------- 저장소 ----------
 const S={get(k,d){try{const v=localStorage.getItem('rp_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('rp_'+k,JSON.stringify(v))}catch(e){}}};
-let settings=Object.assign({appKey:'',kakaoKey:'',home:null,kmpl:11,fuel:1650,stopMin:3,sepMin:40,vehicle:''},S.get('settings',{}));
+let settings=Object.assign({appKey:'',kakaoKey:'',syncUrl:'',home:null,kmpl:11,fuel:1650,stopMin:3,sepMin:40,vehicle:''},S.get('settings',{}));
 let people=S.get('people',[]);
 let schedules=S.get('schedules',[]);
 let job=S.get('job',null)||newJob();
@@ -240,6 +240,15 @@ const API={
     const r=await fetch(this.base+'/tmap/pois/search/around?version=1&count=8&radius=1&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&centerLat='+c.lat+'&centerLon='+c.lon+'&categories='+encodeURIComponent(cat),{headers:{appKey:settings.appKey}});
     if(r.status===204)return[];if(!r.ok)return[];
     const j=await r.json();return((j.searchPoiInfo&&j.searchPoiInfo.pois&&j.searchPoiInfo.pois.poi)||[]).map(p=>this.parsePoi(p));
+  },
+  async geo(q){
+    if(!q)return null;
+    if(demo()){const r=await this.poi(q);return r[0]||null}
+    try{const r=await fetch(this.base+'/tmap/geo/fullAddrGeo?version=1&addressFlag=F00&coordType=WGS84GEO&fullAddr='+encodeURIComponent(q),{headers:{appKey:settings.appKey}});
+      if(r.ok&&r.status!==204){const j=await r.json();const c=j.coordinateInfo&&j.coordinateInfo.coordinate&&j.coordinateInfo.coordinate[0];
+        if(c){const lat=+(c.newLat||c.lat),lon=+(c.newLon||c.lon);if(lat&&lon)return{name:q,addr:q,lat,lon}}}}catch(e){}
+    try{const r=await this.poi(q);if(r[0])return r[0]}catch(e){}
+    return null;
   },
   cache:S.get('legcache',{}),
   async car(a,b){
@@ -338,6 +347,7 @@ function renderHome(){
   let h='';
   if(demo())h+=`<div class="banner">예시 모드예요. 설정에서 티맵 키를 넣으면 실제 길·교통량으로 계산돼요.</div>`;
   if(!settings.home)h+=`<div class="banner">먼저 설정에서 <b>집(출발지)</b>을 정해주세요.</div>`;
+  h+=Sync.homeHtml();
   h+=`<div class="muted">대표님, 다음 공연 픽업 정해볼까요?</div><div style="height:10px"></div>
   <button class="btn" onclick="startNew()">픽업 스케줄 정하기</button>
   <div class="h">내 픽업 일정</div>`;
@@ -424,7 +434,8 @@ function renderPerson(){
 function savePerson(){
   const e=editing;if(!e.name.trim()){toast('이름을 넣어주세요');return}if(!e.spots.length){toast('픽업 장소를 하나 이상 넣어주세요');return}
   const p={id:e.id,name:e.name.trim(),phone:e.phone,spots:e.spots,temp:e.isNew&&editFromForm&&!e.save};
-  const i=people.findIndex(x=>x.id===p.id);i<0?people.push(p):people[i]=p;S.set('people',people);
+  const i=people.findIndex(x=>x.id===p.id);const isNew=i<0;isNew?people.push(p):people[i]=p;S.set('people',people);
+  if(!p.temp&&(isNew||e.spots.some(s=>!s.row)))Sync.pushPerson(p);
   if(editFromForm){if(!job.ids.includes(p.id))job.ids.push(p.id);saveJob();go('form')}else go('people');
 }
 function delPerson(){people=people.filter(p=>p.id!==editing.id);S.set('people',people);go('people')}
@@ -433,14 +444,15 @@ function delPerson(){people=people.filter(p=>p.id!==editing.id);S.set('people',p
 function renderSettings(){
   const s=settings;
   $('settings-body').innerHTML=`<div class="lbl" style="margin-top:4px">티맵 앱 키 (SK open API)</div><input class="inp" id="st-key" value="${esc(s.appKey)}" placeholder="비워두면 예시 모드" autocapitalize="off" autocomplete="off">
+  <div class="lbl">구글 시트 연결 주소 (선택)</div><input class="inp" id="st-sync" value="${esc(s.syncUrl)}" placeholder="https://script.google.com/..." autocapitalize="off" autocomplete="off">
   <div class="lbl">집 (기본 출발지)</div><div class="card row"><span style="flex:1">${s.home?esc(s.home.name):'<span class="muted">정해주세요</span>'}</span><button class="btn sm" onclick="pickPlace('home',pl=>{settings.home=pl;S.set('settings',settings);renderSettings()})">${s.home?'변경':'검색'}</button></div>
   <div class="row"><div style="flex:1"><div class="lbl">내 차 연비 (km/L)</div><input class="inp" id="st-kmpl" type="number" step="0.1" value="${s.kmpl}"></div><div style="flex:1"><div class="lbl">기름값 (원/L)</div><input class="inp" id="st-fuel" type="number" value="${s.fuel}"></div></div>
   <div class="row"><div style="flex:1"><div class="lbl">한 명 태울 때 정차 (분)</div><input class="inp" id="st-stop" type="number" value="${s.stopMin}"></div><div style="flex:1"><div class="lbl">따로 오기 추천 기준 (분)</div><input class="inp" id="st-sep" type="number" value="${s.sepMin}"></div></div>
   <div class="muted" style="margin-top:10px">따로 오기 기준: 차에 타는 시간이 대중교통보다 이만큼 이상 길면 "따로 오는 게 낫다"고 알려줘요.</div>`;
 }
 function saveSettings(){
-  settings.appKey=$('st-key').value.trim();settings.kmpl=+$('st-kmpl').value||11;settings.fuel=+$('st-fuel').value||1650;settings.stopMin=+$('st-stop').value||3;settings.sepMin=+$('st-sep').value||40;
-  S.set('settings',settings);API.cache={};S.set('legcache',{});API.transitOk=true;toast('저장했어요');go('home');
+  settings.appKey=$('st-key').value.trim();settings.syncUrl=$('st-sync').value.trim();settings.kmpl=+$('st-kmpl').value||11;settings.fuel=+$('st-fuel').value||1650;settings.stopMin=+$('st-stop').value||3;settings.sepMin=+$('st-sep').value||40;
+  S.set('settings',settings);API.cache={};S.set('legcache',{});API.transitOk=true;toast('저장했어요');go('home');Sync.run();
 }
 
 // ---------- 계산 ----------
@@ -602,7 +614,7 @@ function confirmPlan(){
   schedules=schedules.filter(x=>x.arrive!==s.arrive||x.destName!==s.destName);schedules.push(s);S.set('schedules',schedules);
   // 이번만 태운 사람 정리
   people=people.filter(x=>!x.temp);S.set('people',people);
-  window._sch=s;go('done');
+  window._sch=s;Sync.pushConfirm(s,p,f);go('done');
 }
 function openSchedule(id){window._sch=schedules.find(s=>s.id===id);go('done')}
 function noticeText(s){
@@ -646,8 +658,115 @@ function sharePerson(i){const s=window._sch,x=s.stops[i],t=new Date(x.time);shar
 function copyAcc(){const s=window._sch,a=new Date(s.arrive);share(`${a.getFullYear()}-${a.getMonth()+1}-${a.getDate()}\t${s.destName}\t운전 ${dur(s.drive)}\t${(s.meters/1000).toFixed(1)}km\t기름값 ${Math.round(s.fuel)}원\t통행료 ${s.toll||0}원`)}
 function delSchedule(){schedules=schedules.filter(x=>x.id!==window._sch.id);S.set('schedules',schedules);go('home')}
 
+
+// ---------- 구글 시트 연결 ----------
+const Sync={
+  st:S.get('syncstate',{last:null,msg:'',busy:false}),
+  drafts:S.get('drafts',{}),
+  ok(){return!!settings.syncUrl},
+  url(){const u=settings.syncUrl;return u},
+  async get(){const r=await fetch(this.url());const j=await r.json();if(!j.ok)throw new Error(j.error||'시트 오류');return j},
+  async post(body){
+    const u=new URL(this.url());body.token=u.searchParams.get('token');
+    const r=await fetch(u.origin+u.pathname,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});
+    try{return await r.json()}catch(e){return{ok:r.ok}}
+  },
+  save(){S.set('syncstate',this.st);S.set('drafts',this.drafts)},
+  parseDate(d,t){const m=String(d).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);const tm=String(t||'').match(/(\d{1,2}):(\d{2})/);if(!m||!tm)return null;
+    const x=new Date(+m[1],+m[2]-1,+m[3],+tm[1],+tm[2]);return isNaN(x)?null:x},
+  async run(){
+    if(!this.ok()||this.st.busy)return;
+    this.st.busy=true;this.st.msg='시트 확인 중...';if(cur==='home')renderHome();
+    try{
+      const j=await this.get();
+      // 멤버: 시트가 기준
+      const byName={};
+      for(const r of j.members){
+        let lat=+r.lat,lon=+r.lon;
+        if(!(lat&&lon)&&r.addr&&!demo()){const g=await API.geo(r.addr);if(g){lat=g.lat;lon=g.lon;this.post({action:'memberGeo',row:r.row,lat,lon})}}
+        const p=byName[r.name]||(byName[r.name]={id:'m:'+r.name,name:r.name,phone:r.phone||'',spots:[],fromSheet:true});
+        if(r.phone&&!p.phone)p.phone=r.phone;
+        if(lat&&lon){const sp={label:r.label||(p.spots.length?'':'집'),name:r.addr||r.label,lat,lon,memo:r.memo||'',row:r.row};r.def==='Y'?p.spots.unshift(sp):p.spots.push(sp)}
+      }
+      const sheetPeople=Object.values(byName).filter(p=>p.spots.length);
+      const missing=Object.values(byName).filter(p=>!p.spots.length).map(p=>p.name);
+      const names=new Set(sheetPeople.map(p=>p.name));
+      people=sheetPeople.concat(people.filter(p=>!p.fromSheet&&!names.has(p.name)));S.set('people',people);
+      // 공연: 새 일정이면 자동 계산
+      let made=0;const now=Date.now();
+      for(const ev of j.events){
+        const key=ev.id||('r'+ev.row);
+        const st=ev.status||'새 일정';
+        if(st==='확정'||st==='취소'){delete this.drafts[key];continue}
+        const arrive=this.parseDate(ev.date,ev.arrive||ev.show);
+        if(!arrive||arrive<now||arrive-now>60*864e5)continue;
+        const want=String(ev.people||'').split(/[,·\/\s]+/).map(x=>x.trim()).filter(Boolean);
+        const sel=people.filter(p=>want.some(w=>p.name.includes(w)||w.includes(p.name)));
+        const d=this.drafts[key];
+        if(d&&d.sig===JSON.stringify([ev.date,ev.arrive,ev.place,ev.addr,ev.people])&&d.plan)continue;
+        let lat=+ev.lat,lon=+ev.lon;
+        if(!(lat&&lon)){const g=await API.geo(ev.addr||ev.place);if(g){lat=g.lat;lon=g.lon;this.post({action:'eventGeo',row:ev.row,lat,lon})}}
+        const draft={key,row:ev.row,title:ev.title||ev.place,place:ev.place,arrive:arrive.toISOString(),want,unknown:want.filter(w=>!sel.some(p=>p.name.includes(w)||w.includes(p.name))),
+          sig:JSON.stringify([ev.date,ev.arrive,ev.place,ev.addr,ev.people]),dest:lat&&lon?{name:ev.place||ev.title,addr:ev.addr,lat,lon}:null,ids:sel.map(p=>p.id)};
+        if(draft.dest&&sel.length&&settings.home){
+          const pad=n=>String(n).padStart(2,'0');
+          job=Object.assign(newJob(),{dest:draft.dest,from:settings.home,date:`${arrive.getFullYear()}-${pad(arrive.getMonth()+1)}-${pad(arrive.getDate())}`,time:hm(arrive),ids:draft.ids,eventKey:key,eventRow:ev.row,eventTitle:draft.title});
+          const P=await planAll(sel);const pick=P[1].seq.length?1:0;const f=finalize(P[pick],arrive);
+          draft.plan=P[pick].name;draft.depart=f.depart.toISOString();draft.job=job;
+          draft.order=f.stops.map(s=>`${hm(s.time)} ${s.p.name}(${s.c.label})`).join(' → ')+(P[pick].selfs.length?' / 따로: '+P[pick].selfs.map(x=>x.p.name).join(', '):'');
+          this.post({action:'saveEvent',row:ev.row,status:'계산됨',depart:hm(f.depart),plan:draft.plan,order:draft.order,fuel:Math.round(f.fuel)});
+          made++;
+        }
+        this.drafts[key]=draft;
+      }
+      this.st.last=new Date().toISOString();
+      this.st.msg=(made?`새 공연 ${made}건 픽업안을 짰어요`:'시트와 맞춰졌어요')+(missing.length?` · 주소 못 찾은 사람: ${missing.join(', ')}`:'');
+    }catch(e){this.st.msg='시트 연결 실패: '+e.message}
+    finally{this.st.busy=false;this.save();if(cur==='home')renderHome()}
+  },
+  homeHtml(){
+    if(!this.ok())return'';
+    let h=`<div class="muted" style="margin-bottom:8px">${this.st.busy?'<span class="spin" style="border-color:var(--b);border-right-color:transparent;width:12px;height:12px;border-width:2px"></span> ':''}${esc(this.st.msg||'')}</div>`;
+    const ds=Object.values(this.drafts).sort((a,b)=>a.arrive<b.arrive?-1:1);
+    if(ds.length)h+=`<div class="h" style="margin-top:4px">새 공연 픽업안</div>`;
+    ds.forEach(d=>{const a=new Date(d.arrive);
+      let sub=d.plan?`${hm(new Date(d.depart))} 출발 · ${esc(d.plan)}`:!d.dest?'공연 장소를 못 찾았어요 · 눌러서 정하기':!d.ids.length?'태울 사람을 골라주세요':'계산 대기';
+      if(d.unknown&&d.unknown.length)sub+=` · 명단에 없는 이름: ${esc(d.unknown.join(', '))}`;
+      h+=`<button class="card" style="width:100%;text-align:left;border:2px solid var(--b);background:#F3F6FF;margin-bottom:8px;display:flex;gap:14px;align-items:center" onclick="Sync.open('${esc(d.key)}')">
+      <div style="text-align:center;min-width:44px"><div class="muted">${a.getMonth()+1}월</div><div style="font-size:24px;font-weight:900">${a.getDate()}</div></div>
+      <div style="min-width:0;flex:1"><div style="font-weight:700">${esc(d.title||'')} · ${hm(a)} 도착</div><div class="muted">${sub}</div></div><span style="color:var(--b);font-weight:700">확인 ›</span></button>`});
+    return h;
+  },
+  async open(key){
+    const d=this.drafts[key];if(!d)return;
+    const a=new Date(d.arrive),pad=n=>String(n).padStart(2,'0');
+    job=d.job||Object.assign(newJob(),{dest:d.dest,from:settings.home,date:`${a.getFullYear()}-${pad(a.getMonth()+1)}-${pad(a.getDate())}`,time:hm(a),ids:d.ids,eventKey:key,eventRow:d.row,eventTitle:d.title});
+    saveJob();
+    if(!job.dest||!job.ids.length){go('form');toast(!job.dest?'도착지를 정해주세요':'태울 사람을 골라주세요');return}
+    go('form');await runCalc();
+  },
+  async pushPerson(p){
+    if(!this.ok())return;
+    const spots=p.spots.filter(s=>!s.row);if(!spots.length)return;
+    try{await this.post({action:'addMember',name:p.name,phone:p.phone,spots:spots.map(s=>({label:s.label,addr:s.addr||s.name,lat:s.lat,lon:s.lon,memo:s.memo}))});
+      p.fromSheet=true;p.id='m:'+p.name;S.set('people',people)}catch(e){}
+  },
+  async pushConfirm(s,p,f){
+    if(!this.ok())return;
+    const order=s.stops.map(x=>`${hm(new Date(x.time))} ${x.name}(${x.label})`).join(' → ')+(s.selfs.length?' / 따로: '+s.selfs.map(x=>x.name).join(', '):'');
+    const desc=noticeText(s);
+    try{
+      if(job.eventRow){await this.post({action:'saveEvent',row:job.eventRow,status:'확정',depart:hm(new Date(s.depart)),plan:s.planName,order,fuel:Math.round(s.fuel),departIso:s.depart,arriveIso:s.arrive,title:s.destName+(job.eventTitle&&job.eventTitle!==s.destName?' ('+job.eventTitle+')':''),desc});
+        delete this.drafts[job.eventKey];this.save()}
+      else{const a=new Date(s.arrive),W='일월화수목금토';await this.post({action:'addEvent',date:`${a.getFullYear()}.${String(a.getMonth()+1).padStart(2,'0')}.${String(a.getDate()).padStart(2,'0')} (${W[a.getDay()]})`,arrive:hm(a),title:s.destName,place:s.destName,lat:s.dest.lat,lon:s.dest.lon,people:s.stops.map(x=>x.name).concat(s.selfs.map(x=>x.name)).join(', '),status:'확정',depart:hm(new Date(s.depart)),plan:s.planName,order,fuel:Math.round(s.fuel)})}
+      toast('시트에 저장했어요');
+    }catch(e){toast('시트 저장 실패: '+e.message,3500)}
+  }
+};
+
 // ---------- 시작 ----------
-initMap();go('home');
+initMap();go('home');Sync.run();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Sync.ok()&&Date.now()-new Date(Sync.st.last||0)>5*60e3)Sync.run()});
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
