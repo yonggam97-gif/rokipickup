@@ -765,6 +765,10 @@ const Sync={
 };
 
 // ---------- 시작 ----------
+// 설정 링크: #setup=... 로 열면 설정을 한 번에 넣음 (주소창에서 바로 지움)
+(function(){try{const h=location.hash;if(h.startsWith('#setup=')){const b=h.slice(7).replace(/-/g,'+').replace(/_/g,'/');const j=JSON.parse(decodeURIComponent(escape(atob(b))));
+  ['appKey','home','kmpl','fuel','stopMin','sepMin','syncUrl'].forEach(k=>{if(j[k]!=null)settings[k]=j[k]});S.set('settings',settings);
+  history.replaceState(null,'',location.pathname);setTimeout(()=>toast('설정을 넣었어요'+(j.home?' · 출발지: '+j.home.name:'')),300)}}catch(e){console.error(e)}})();
 initMap();go('home');Sync.run();
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Sync.ok()&&Date.now()-new Date(Sync.st.last||0)>5*60e3)Sync.run()});
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
