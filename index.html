@@ -205,7 +205,9 @@ button{cursor:pointer}
 'use strict';
 // ---------- 저장소 ----------
 const S={get(k,d){try{const v=localStorage.getItem('rp_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('rp_'+k,JSON.stringify(v))}catch(e){}}};
-let settings=Object.assign({appKey:'',kakaoKey:'',syncUrl:'',home:null,kmpl:11,fuel:1650,stopMin:3,sepMin:40,vehicle:''},S.get('settings',{}));
+let settings=Object.assign({appKey:'',kakaoKey:'',syncUrl:'',home:null,kmpl:11,fuel:1650,stopMin:5,sepMin:40,vehicle:''},S.get('settings',{}));
+// 정차 기본값 3분→5분 변경(2026-11): 예전 기본값 3분 그대로인 기기는 5분으로 올림
+if(!settings.stopV){if(settings.stopMin===3)settings.stopMin=5;settings.stopV=1;S.set('settings',settings)}
 let people=S.get('people',[]);
 let schedules=S.get('schedules',[]);
 let job=S.get('job',null)||newJob();
@@ -451,7 +453,7 @@ function renderSettings(){
   <div class="muted" style="margin-top:10px">따로 오기 기준: 차에 타는 시간이 대중교통보다 이만큼 이상 길면 "따로 오는 게 낫다"고 알려줘요.</div>`;
 }
 function saveSettings(){
-  settings.appKey=$('st-key').value.trim();settings.syncUrl=$('st-sync').value.trim();settings.kmpl=+$('st-kmpl').value||11;settings.fuel=+$('st-fuel').value||1650;settings.stopMin=+$('st-stop').value||3;settings.sepMin=+$('st-sep').value||40;
+  settings.appKey=$('st-key').value.trim();settings.syncUrl=$('st-sync').value.trim();settings.kmpl=+$('st-kmpl').value||11;settings.fuel=+$('st-fuel').value||1650;settings.stopMin=+$('st-stop').value||5;settings.sepMin=+$('st-sep').value||40;
   S.set('settings',settings);API.cache={};S.set('legcache',{});API.transitOk=true;toast('저장했어요');go('home');Sync.run();
 }
 
