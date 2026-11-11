@@ -1,0 +1,747 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>미리메리 크리스마스 MAP</title>
+<meta name="description" content="서면·전포 골목에 산타요정이 나타났다! 실시간 산타요정 위치 · 산타 메시지 · 제휴 매장 혜택">
+<meta property="og:type" content="website"><meta property="og:site_name" content="미리메리 크리스마스">
+<meta property="og:title" content="미리메리 크리스마스 🎅 산타요정 지도">
+<meta property="og:description" content="서면·전포 골목에 산타요정이 나타났다! 실시간 위치 확인하고 산타요정 잡으러 가기">
+<meta property="og:image" content="img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0B2418">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="img/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%84%3C/text%3E%3C/svg%3E">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
+:root{--night:#0B2418;--card:#14331F;--card2:#1B4029;--red:#D7263D;--red2:#A3172A;--green:#1F8A4C;--green2:#0F3D24;--snow:#FFFFFF;--cream:#FFF7EC;--gold:#E8C468;--mut:#B7C9BC;--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);--fs:clamp(13px,3.6vw,17px);}
+html,body{height:100%;font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;background:#06140D;color:var(--snow);overflow:hidden;}
+#app{position:relative;width:100%;height:100dvh;max-width:560px;margin:0 auto;background:var(--night);overflow:clip;}
+button{font-family:inherit;cursor:pointer;}
+a{color:inherit;text-decoration:none;}
+
+/* ===== 인트로 ===== */
+#intro{position:absolute;inset:0;z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch;background:radial-gradient(120% 70% at 50% 0%,#1E5A36 0%,#0F3D24 45%,#08200F 100%);}
+#intro.hide{display:none;}
+.inIn{position:relative;min-height:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:calc(54px + var(--sat)) 22px calc(28px + var(--sab));}
+.lights{position:absolute;top:calc(var(--sat) + 4px);left:0;right:0;height:40px;pointer-events:none;}
+.lights svg{width:100%;height:100%;}
+.lights .b{animation:bulb 1.6s ease-in-out infinite;}
+.lights .b:nth-child(2n){animation-delay:.8s;}
+@keyframes bulb{0%,100%{opacity:1;}50%{opacity:.35;}}
+.inKicker{font-size:13px;letter-spacing:3px;color:var(--gold);font-weight:800;margin-top:10px;}
+.inTitle{margin:14px 0 6px;line-height:1.02;font-weight:900;letter-spacing:-1px;}
+.inTitle .t1{display:block;font-size:clamp(46px,14vw,70px);color:#fff;text-shadow:0 4px 0 var(--red2),0 8px 24px rgba(0,0,0,.45);}
+.inTitle .t2{display:block;font-size:clamp(40px,12.4vw,62px);color:var(--red);-webkit-text-stroke:2px #fff;paint-order:stroke fill;text-shadow:0 6px 20px rgba(0,0,0,.45);}
+.inTree{width:min(46vw,190px);height:auto;margin:14px 0 6px;filter:drop-shadow(0 10px 18px rgba(0,0,0,.45));}
+.inLead{font-size:clamp(16px,4.6vw,19px);font-weight:800;line-height:1.5;word-break:keep-all;margin:6px 0 18px;}
+.inLead b{color:var(--gold);}
+.inFeat{width:100%;max-width:420px;display:grid;gap:9px;margin-bottom:22px;}
+.inFeat div{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:12px 14px;text-align:left;font-size:var(--fs);font-weight:700;line-height:1.4;word-break:keep-all;}
+.inFeat i{font-style:normal;font-size:24px;flex:0 0 auto;}
+.inFeat small{display:block;font-size:12.5px;color:var(--mut);font-weight:600;}
+.inBtn{width:100%;max-width:420px;border:none;border-radius:18px;padding:19px;font-size:clamp(17px,4.8vw,20px);font-weight:900;color:#fff;background:linear-gradient(180deg,#E8384E,#B71C2F);box-shadow:0 6px 0 #7E1020,0 12px 26px rgba(0,0,0,.4);}
+.inBtn:active{transform:translateY(3px);box-shadow:0 3px 0 #7E1020,0 8px 18px rgba(0,0,0,.4);}
+.inDate{margin-top:18px;font-size:13.5px;color:var(--mut);font-weight:700;}
+.demoTag{display:inline-block;margin-top:12px;font-size:12px;font-weight:800;color:#0B2418;background:var(--gold);padding:4px 10px;border-radius:12px;}
+
+/* ===== 눈 ===== */
+#snow{position:absolute;inset:0;z-index:15;pointer-events:none;}
+#intro #snowIn{position:fixed;inset:0;pointer-events:none;}
+
+/* ===== 상단 ===== */
+#topbar{position:absolute;top:0;left:0;right:0;z-index:30;padding:calc(10px + var(--sat)) 14px 10px;background:linear-gradient(180deg,rgba(11,36,24,.97) 60%,rgba(11,36,24,0));pointer-events:none;}
+.tt{font-size:clamp(16px,4.6vw,20px);font-weight:900;}
+.tt b{color:var(--red);-webkit-text-stroke:.6px #fff;paint-order:stroke fill;}
+.sub{font-size:clamp(11px,3vw,13px);color:var(--mut);margin-top:3px;line-height:1.4;word-break:keep-all;}
+.topBtns{position:absolute;top:calc(8px + var(--sat));right:12px;display:flex;gap:6px;pointer-events:auto;}
+.topBtns button{background:rgba(20,51,31,.94);border:1px solid rgba(232,196,104,.55);color:var(--gold);font-size:13px;font-weight:800;padding:7px 11px;border-radius:20px;}
+#filters{position:absolute;top:calc(54px + var(--sat));left:0;right:0;z-index:30;display:flex;gap:6px;padding:6px 14px;overflow-x:auto;scrollbar-width:none;}
+#filters::-webkit-scrollbar{display:none;}
+.chip{flex:0 0 auto;font-size:clamp(12px,3.4vw,14px);padding:7px 14px;border-radius:20px;background:rgba(255,255,255,.14);color:#fff;font-weight:700;white-space:nowrap;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.1);}
+.chip.active{background:#fff;color:var(--red2);border-color:#fff;}
+.chip.sChip{background:rgba(215,38,61,.9);border-color:rgba(255,255,255,.5);}
+.chip.sChip.off{background:rgba(255,255,255,.14);}
+
+/* ===== 지도 ===== */
+#mapWrap{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#08200F;}
+#mapLayer{position:absolute;top:0;left:0;transform-origin:0 0;}
+#mapImg{display:block;pointer-events:none;}
+.marker{position:absolute;transform:translate(-50%,-100%) scale(var(--ms,1));transform-origin:50% 100%;z-index:25;touch-action:none;padding:6px;margin:-6px;cursor:pointer;}
+.marker .orn{width:clamp(50px,13.5vw,60px);height:auto;display:block;filter:drop-shadow(0 3px 4px rgba(0,0,0,.55));}
+.marker .lbl{position:absolute;top:calc(6px + clamp(50px,13.5vw,60px) * 1.33 - 6px);left:50%;transform:translateX(-50%);background:rgba(255,255,255,.95);color:#12331F;font-size:clamp(21px,5.8vw,24px);padding:2px 9px;border-radius:9px;font-weight:800;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35);}
+.marker.hq .lbl{background:var(--red);color:#fff;}.marker.hq{z-index:27;}
+.marker.dim{opacity:.25;}
+.marker .lbl.r,.marker .lbl.l{top:26%;}
+.marker .lbl.r{left:calc(100% - 8px);transform:none;}
+.marker .lbl.l{left:8px;transform:translateX(-100%);}
+.marker .lbl.up,.marker .lbl.ur,.marker .lbl.ul{top:auto;bottom:calc(100% - 4px);}
+.marker .lbl.br,.marker .lbl.ur{transform:translateX(-12%);}
+.marker .lbl.bl,.marker .lbl.ul{transform:translateX(-88%);}
+/* 산타 표시 */
+.santa{position:absolute;z-index:29;width:0;height:0;cursor:pointer;transition:left 1.2s linear,top 1.2s linear;}
+.santa .sIn{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(calc(var(--ms,1) * 1.5));display:flex;flex-direction:column;align-items:center;}
+.santa .santaIc{box-shadow:0 3px 8px rgba(0,0,0,.55);}
+.santa .pulse{position:absolute;left:50%;top:23px;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:3px solid var(--c);animation:sPulse 1.8s ease-out infinite;}
+@keyframes sPulse{0%{transform:scale(.9);opacity:.9;}100%{transform:scale(2.1);opacity:0;}}
+.santa .sNm{margin-top:3px;background:var(--c);color:#fff;font-size:14px;font-weight:900;padding:2px 8px;border-radius:9px;white-space:nowrap;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);}
+.santa .sAgo{margin-top:2px;background:rgba(0,0,0,.7);color:#fff;font-size:11.5px;font-weight:800;padding:1px 7px;border-radius:8px;white-space:nowrap;}
+.santa.stale .pulse{display:none;}
+.santa.stale .sNm{background:#6B7280;}
+.santa.stale{opacity:.85;}
+
+/* ===== 오른쪽 버튼 ===== */
+#zoomCtrl{position:absolute;right:12px;bottom:calc(92px + var(--sab));z-index:30;display:flex;flex-direction:column;gap:8px;}
+.zbtn{width:54px;height:54px;border-radius:14px;background:rgba(20,51,31,.94);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:30px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.resetBtn,.locBtn{height:auto;padding:8px 0 7px;flex-direction:column;gap:3px;}
+.resetBtn{color:var(--gold);border:1.5px solid rgba(232,196,104,.75);}
+.resetBtn span,.locBtn span{font-size:11px;font-weight:900;letter-spacing:-.4px;}
+.locBtn{position:relative;color:#9FD8FF;border:1.5px solid rgba(159,216,255,.75);}
+.locBtn.on{background:#1E6FD9;color:#fff;border-color:#CFE8FF;}
+.locBtn.busy svg{animation:locBlink .8s ease-in-out infinite;}
+@keyframes locBlink{50%{opacity:.25;}}
+#locOff{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%);height:32px;padding:0 11px;border-radius:16px;background:rgba(11,36,24,.95);color:#fff;border:1.5px solid rgba(207,232,255,.85);font-size:12.5px;font-weight:900;line-height:29px;white-space:nowrap;display:none;font-style:normal;}
+.locBtn.on #locOff,.locBtn.busy #locOff{display:block;}
+
+/* ===== 아래 메뉴 ===== */
+#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:40;display:flex;gap:8px;padding:10px 12px calc(10px + var(--sab));background:linear-gradient(0deg,rgba(11,36,24,.98) 70%,rgba(11,36,24,0));}
+.tab{position:relative;flex:1;border:none;border-radius:16px;padding:12px 4px;font-size:clamp(13.5px,3.8vw,15.5px);font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 12px rgba(0,0,0,.4);white-space:nowrap;}
+.tab.t1{background:linear-gradient(180deg,#E8384E,#B71C2F);}
+.tab.t2{background:#fff;color:var(--red2);}
+.tab.t3{background:linear-gradient(180deg,#2AA35E,#167441);}
+.tab .bdg{position:absolute;top:-6px;right:6px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--gold);color:#3B2600;font-size:12.5px;font-weight:900;display:none;align-items:center;justify-content:center;border:2px solid #fff;}
+.tab .bdg.show{display:flex;animation:bdgPop 1.2s ease-in-out infinite;}
+@keyframes bdgPop{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+
+/* ===== 아래 시트 (가게·산타 정보) ===== */
+#backdrop{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:45;opacity:0;pointer-events:none;transition:opacity .3s;}
+#backdrop.show{opacity:1;pointer-events:auto;}
+#sheet{position:absolute;left:0;right:0;bottom:0;z-index:50;max-width:560px;margin:0 auto;background:var(--card);border-radius:22px 22px 0 0;border-top:3px solid var(--red);transform:translateY(110%);transition:transform .32s cubic-bezier(.22,1,.36,1);max-height:86dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#sheet.open{transform:translateY(0);}#sheet.dragging{transition:none;}
+.gripZone{position:sticky;top:0;background:var(--card);z-index:3;padding-bottom:2px;}
+.grip{width:46px;height:5px;background:rgba(255,255,255,.3);border-radius:3px;margin:10px auto 4px;}
+.sheetClose{position:absolute;top:12px;right:16px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:1px solid rgba(255,255,255,.4);font-size:19px;display:flex;align-items:center;justify-content:center;z-index:4;cursor:pointer;}
+.photos{display:flex;gap:8px;overflow-x:auto;padding:8px 16px 4px;scrollbar-width:none;scroll-snap-type:x mandatory;}
+.photos:empty{display:none;}
+.photos::-webkit-scrollbar{display:none;}
+.photo{flex:0 0 auto;width:clamp(160px,50vw,220px);height:clamp(120px,36vw,160px);border-radius:14px;background-size:cover;background-position:center;scroll-snap-align:center;cursor:pointer;}
+.sheetBody{padding:6px 18px calc(30px + var(--sab));}
+.shName{font-size:clamp(20px,5.6vw,26px);font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-right:44px;}
+.cat{font-size:clamp(11px,3vw,13px);background:var(--green);color:#fff;padding:3px 10px;border-radius:20px;font-weight:800;}
+.shDesc{font-size:var(--fs);color:var(--mut);margin:8px 0 16px;line-height:1.55;word-break:keep-all;}
+.discount{background:linear-gradient(90deg,rgba(215,38,61,.3),rgba(215,38,61,.06));border:1px solid rgba(215,38,61,.7);border-radius:12px;padding:13px 15px;margin-bottom:14px;display:flex;align-items:center;gap:9px;}
+.discount .dtag{background:var(--red);color:#fff;font-size:clamp(12px,3.2vw,14px);font-weight:900;padding:4px 10px;border-radius:8px;flex:0 0 auto;}
+.discount .dtxt{flex:1 1 auto;min-width:0;font-size:var(--fs);font-weight:800;word-break:keep-all;overflow-wrap:anywhere;}
+.discount .dtxt small{display:block;font-size:12px;color:var(--mut);font-weight:600;margin-top:3px;}
+.discount.pending{background:rgba(232,196,104,.1);border-color:rgba(232,196,104,.45);}
+.discount.pending .dtag{background:#8A6D1E;}
+.discImg{position:relative;margin:-6px 0 14px;border-radius:12px;overflow:hidden;border:1px solid rgba(215,38,61,.55);cursor:pointer;}
+.discImg img{display:block;width:100%;max-height:220px;object-fit:cover;object-position:top;}
+.discImg span{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.7);color:#fff;font-size:12px;font-weight:800;padding:5px 10px;border-radius:20px;}
+.info{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:var(--fs);}
+.info .k{flex:0 0 78px;color:var(--gold);font-weight:800;}.info .v{flex:1;line-height:1.5;word-break:keep-all;}.info .cp{font-size:12px;color:var(--gold);margin-left:4px;}
+.menuHead{font-size:clamp(16px,4.4vw,18px);font-weight:900;color:var(--gold);margin:18px 0 8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.12);}
+.menuHint{font-size:11.5px;color:var(--mut);font-weight:600;margin-left:8px;}
+.menuItem{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.menuItem.zoomable{cursor:pointer;}
+.menuItem.rec{background:linear-gradient(135deg,rgba(215,38,61,.22),rgba(31,138,76,.22));border:1.5px solid rgba(232,196,104,.75);border-radius:14px;padding:10px 12px;margin:6px 0 10px;}
+.menuThumb{position:relative;flex:0 0 auto;width:clamp(58px,15vw,68px);height:clamp(58px,15vw,68px);border-radius:10px;background-size:cover;background-position:center;}
+.menuTx{flex:1;min-width:0;}
+.menuNm{font-size:var(--fs);font-weight:800;}.menuDesc{font-size:clamp(11px,3vw,13px);color:var(--mut);margin-top:2px;line-height:1.4;}
+.menuPrice{flex:0 0 auto;font-size:var(--fs);font-weight:900;color:var(--gold);text-align:right;}
+.camIc{display:block;font-size:13px;margin-top:3px;}
+.recBadge{display:inline-flex;align-items:center;gap:4px;background:var(--red);color:#fff;font-size:11.5px;font-weight:900;padding:2px 10px 2px 4px;border-radius:12px;margin-bottom:5px;white-space:nowrap;}
+.recBadge .orn{width:18px;height:auto;}
+.actions{display:flex;gap:9px;margin-top:18px;}
+.btn{flex:1;padding:16px;border-radius:13px;font-size:clamp(14px,3.8vw,16px);font-weight:900;text-align:center;border:none;}
+.btn.primary{background:#fff;color:var(--red2);}
+.btn.call{flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--green);color:#fff;padding:16px 18px;}
+.btn.insta{background:linear-gradient(45deg,#F58529,#DD2A7B 50%,#8134AF);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;}
+/* 산타 정보 */
+.sHead{display:flex;align-items:center;gap:14px;padding-right:44px;margin:4px 0 10px;}
+.sHead .nm{font-size:clamp(20px,5.6vw,24px);font-weight:900;}
+.sHead .tg{font-size:14px;color:var(--mut);margin-top:3px;word-break:keep-all;}
+.sState{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:900;padding:5px 11px;border-radius:20px;margin:4px 0 10px;}
+.sState.live{background:rgba(46,204,113,.18);color:#7CF0A8;}
+.sState.stale{background:rgba(232,196,104,.16);color:var(--gold);}
+.sState.off{background:rgba(255,255,255,.1);color:var(--mut);}
+.sState i{width:9px;height:9px;border-radius:50%;background:currentColor;}
+.sState.live i{animation:locBlink 1.2s ease-in-out infinite;}
+.sDesc{font-size:var(--fs);line-height:1.6;color:#E6F0E9;word-break:keep-all;}
+
+/* ===== 전체 화면 목록 (제휴 매장 / 산타 / 메시지) ===== */
+.page{position:absolute;inset:0;z-index:85;display:none;background:var(--night);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.page.show{display:block;}
+.lpHead{position:sticky;top:0;z-index:2;background:linear-gradient(180deg,var(--night) 88%,rgba(11,36,24,0));padding:calc(14px + var(--sat)) 16px 8px;}
+.lpTitle{font-size:clamp(19px,5.4vw,22px);font-weight:900;padding-right:50px;word-break:keep-all;}
+.lpTitle b{color:var(--red);-webkit-text-stroke:.5px #fff;paint-order:stroke fill;}
+.lpX{position:absolute;right:14px;top:calc(10px + var(--sat));width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:20px;}
+.lpSub{font-size:13px;color:var(--mut);margin-top:4px;word-break:keep-all;}
+.lpChips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none;}
+.lpChips::-webkit-scrollbar{display:none;}
+.lpGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 14px calc(24px + var(--sab));}
+.sCard{background:var(--card);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1);cursor:pointer;}
+.sCard:active,.sRow:active{transform:scale(.98);}
+.sCard.hq,.sRow.hq{border-color:var(--red);}
+.scImg{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;}
+.scImg.fit{object-fit:contain;background:#fff;padding:8px;}
+.scPh{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1F6B3A,#0F3D24);}
+.scPh .orn{width:44px;height:auto;}
+.scBody{padding:8px 10px 11px;}
+.scName{font-size:16px;font-weight:900;margin:5px 0 3px;line-height:1.3;word-break:keep-all;}
+.scDisc{font-size:12.5px;color:#FFD6A0;font-weight:700;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all;overflow-wrap:anywhere;}
+.scDisc.pend{color:var(--mut);}
+.sRow{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid rgba(255,255,255,.14);border-radius:16px;padding:10px;margin-bottom:10px;cursor:pointer;}
+.sRow .scImg{width:64px;height:64px;border-radius:12px;flex:0 0 auto;aspect-ratio:auto;}
+.sRow .scBody{flex:1;min-width:0;padding:0;}
+.sRow .go{flex:0 0 auto;background:#fff;color:var(--red2);font-weight:900;font-size:14px;padding:10px 12px;border-radius:12px;white-space:nowrap;}
+.lpList{padding:4px 14px calc(24px + var(--sab));}
+/* 산타 목록 */
+.spRow{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid rgba(255,255,255,.12);border-left:6px solid var(--c);border-radius:16px;padding:12px;margin-bottom:10px;cursor:pointer;}
+.spRow .tx{flex:1;min-width:0;}
+.spRow .nm{font-size:17px;font-weight:900;}
+.spRow .tg{font-size:13px;color:var(--mut);margin-top:2px;word-break:keep-all;}
+.spRow .sState{margin:6px 0 0;font-size:12.5px;padding:3px 9px;}
+.spRow .go{flex:0 0 auto;background:var(--red);color:#fff;font-weight:900;font-size:13.5px;padding:10px 11px;border-radius:12px;white-space:nowrap;}
+.spRow.off .go{background:rgba(255,255,255,.12);color:var(--mut);}
+.lpNote{margin:6px 2px 14px;background:rgba(232,196,104,.12);border:1px solid rgba(232,196,104,.4);border-radius:12px;padding:11px 13px;font-size:13.5px;line-height:1.5;color:#F6E7BD;word-break:keep-all;}
+/* 메시지함 */
+.msg{background:var(--cream);color:#2A1A10;border-radius:16px;padding:14px 14px 12px;margin-bottom:12px;position:relative;box-shadow:0 6px 16px rgba(0,0,0,.35);}
+.msg.new{outline:3px solid var(--gold);}
+.msg .mt{font-size:16px;font-weight:900;color:var(--red2);word-break:keep-all;padding-right:56px;}
+.msg .mb{font-size:14.5px;line-height:1.55;margin-top:6px;word-break:keep-all;white-space:pre-line;}
+.msg .ma{position:absolute;top:14px;right:14px;font-size:12px;color:#8A7A6A;font-weight:700;}
+.msg .btn.insta{margin-top:10px;width:100%;padding:13px;}
+.empty{text-align:center;color:var(--mut);padding:40px 16px;font-size:15px;line-height:1.6;}
+
+/* ===== 산타 메시지 팝업 ===== */
+#alertModal{position:absolute;inset:0;z-index:180;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(4,14,8,.82);backdrop-filter:blur(3px);}
+#alertModal.show{display:flex;}
+.amCard{position:relative;width:100%;max-width:400px;background:var(--cream);color:#2A1A10;border-radius:22px;padding:58px 20px 18px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.6);animation:amPop .5s cubic-bezier(.34,1.56,.64,1);border:4px solid #fff;outline:6px solid var(--red);}
+@keyframes amPop{0%{transform:scale(.6) rotate(-4deg);opacity:0;}100%{transform:none;opacity:1;}}
+.amEnv{position:absolute;top:-46px;left:50%;transform:translateX(-50%);width:92px;height:92px;border-radius:50%;background:var(--red);border:5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:46px;box-shadow:0 8px 20px rgba(0,0,0,.4);animation:amBell 1.2s ease-in-out infinite;}
+@keyframes amBell{0%,100%{transform:translateX(-50%) rotate(0);}20%{transform:translateX(-50%) rotate(-12deg);}40%{transform:translateX(-50%) rotate(10deg);}60%{transform:translateX(-50%) rotate(-6deg);}}
+.amKick{font-size:13px;font-weight:900;color:var(--green);letter-spacing:1px;}
+.amTitle{font-size:clamp(20px,5.8vw,24px);font-weight:900;color:var(--red2);margin:6px 0 10px;line-height:1.3;word-break:keep-all;}
+.amFrom{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;background:#F1E6D6;padding:4px 10px 4px 4px;border-radius:20px;margin-bottom:10px;}
+.amMsg{font-size:15.5px;line-height:1.6;word-break:keep-all;white-space:pre-line;margin-bottom:16px;}
+.amCard .btn.insta{width:100%;padding:17px;font-size:17px;box-shadow:0 6px 16px rgba(221,42,123,.35);}
+.amLater{margin-top:8px;background:none;border:none;color:#8A7A6A;font-size:14.5px;font-weight:800;padding:10px;width:100%;}
+
+/* ===== 기타 ===== */
+#pickSheet{position:absolute;inset:0;z-index:60;display:none;}
+#pickSheet.show{display:block;}
+.pkDim{position:absolute;inset:0;background:rgba(0,0,0,.5);}
+.pkCard{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--card);border-radius:22px 22px 0 0;padding:16px 14px calc(16px + var(--sab));max-height:72dvh;overflow-y:auto;}
+.pkTitle{font-size:16px;font-weight:900;margin:0 4px 12px;}
+.pkClose{width:100%;background:rgba(255,255,255,.1);color:#fff;border:none;padding:13px;border-radius:12px;font-size:15px;font-weight:700;margin-top:2px;}
+#navModal{position:absolute;inset:0;z-index:88;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);}
+#navModal.show{display:flex;}
+.navCard{width:100%;max-width:560px;background:var(--card);border-radius:22px 22px 0 0;padding:20px 18px calc(26px + var(--sab));}
+.navTitle{font-size:clamp(15px,4vw,17px);font-weight:900;text-align:center;margin-bottom:14px;}
+.navOpt{display:flex;align-items:center;gap:13px;padding:15px 16px;border-radius:14px;background:rgba(255,255,255,.07);margin-bottom:10px;cursor:pointer;}
+.navOpt .ic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;}
+.navOpt .nm{font-size:var(--fs);font-weight:800;}
+.navCancel{text-align:center;padding:14px;color:var(--mut);font-size:var(--fs);font-weight:800;cursor:pointer;}
+#lightbox{position:absolute;inset:0;z-index:95;display:none;background:rgba(0,0,0,.96);}
+#lightbox.show{display:block;}
+#lbTrack{display:flex;height:100%;transition:transform .3s;}#lbTrack.dragging{transition:none;}
+.lbSlide{flex:0 0 100%;height:100%;display:flex;align-items:center;justify-content:center;padding:16px;}
+.lbFig{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;max-width:100%;max-height:100%;}
+.lbFig img{max-width:100%;max-height:calc(100dvh - 190px);border-radius:12px;object-fit:contain;}
+.lbFig figcaption{margin-top:14px;color:#fff;font-size:clamp(16px,4.6vw,20px);font-weight:900;text-align:center;line-height:1.35;padding:0 8px;word-break:keep-all;}
+#lightbox .x{position:absolute;top:calc(16px + var(--sat));right:20px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;z-index:2;cursor:pointer;}
+#lbDots{position:absolute;bottom:calc(24px + var(--sab));left:0;right:0;display:flex;justify-content:center;gap:7px;z-index:2;}
+#lbDots span{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);}#lbDots span.on{background:#fff;}
+#helpModal{position:absolute;inset:0;z-index:170;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.7);}
+#helpModal.show{display:flex;}
+.hpCard{width:100%;max-width:420px;background:var(--card);border:2px solid rgba(255,255,255,.2);border-radius:20px;padding:20px 18px 14px;}
+.hpCard h3{font-size:19px;font-weight:900;margin-bottom:12px;}
+.hpCard li{list-style:none;display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.5;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);word-break:keep-all;}
+.hpCard li i{font-style:normal;font-size:22px;flex:0 0 30px;text-align:center;}
+.hpCard li .orn{width:28px;height:auto;flex:0 0 30px;}
+.hpCard button{width:100%;margin-top:14px;background:#fff;color:var(--red2);border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:900;}
+.copyToast{position:absolute;bottom:calc(150px + var(--sab));left:50%;transform:translateX(-50%);background:#1F8A4C;color:#fff;font-size:14px;font-weight:800;padding:11px 20px;border-radius:20px;z-index:220;opacity:0;transition:opacity .3s;pointer-events:none;width:max-content;max-width:calc(100% - 32px);text-align:center;line-height:1.45;border:1.5px solid rgba(255,255,255,.5);}
+.copyToast.show{opacity:1;}
+/* 내 위치 */
+#meDot{position:absolute;z-index:28;width:0;height:0;pointer-events:none;}
+#meDot .meAcc{position:absolute;left:0;top:0;transform:translate(-50%,-50%);border-radius:50%;background:rgba(30,144,255,.16);border:2px solid rgba(30,144,255,.45);}
+#meDot .mePin{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(calc(var(--ms,1) * 1.6));display:flex;flex-direction:column;align-items:center;}
+#meDot .mePin i{display:block;width:22px;height:22px;border-radius:50%;background:#1E90FF;border:4px solid #fff;box-shadow:0 0 0 6px rgba(30,144,255,.35),0 2px 8px rgba(0,0,0,.5);animation:mePulse 1.6s ease-out infinite;}
+#meDot .mePin b{position:absolute;top:30px;background:#1E90FF;color:#fff;font-size:15px;font-weight:900;padding:1px 8px;border-radius:8px;white-space:nowrap;}
+#meDot.stale .mePin i{background:#8A8A99;animation:none;}
+#meDot.stale .mePin b{background:#6E6E80;}
+#meDot.stale .meAcc{opacity:.35;}
+@keyframes mePulse{0%{box-shadow:0 0 0 0 rgba(30,144,255,.55),0 2px 8px rgba(0,0,0,.5);}100%{box-shadow:0 0 0 18px rgba(30,144,255,0),0 2px 8px rgba(0,0,0,.5);}}
+#meDot .meDir{position:absolute;left:50%;top:50%;width:0;height:0;z-index:-1;display:none;transition:transform .2s linear;}
+#meDot.hasDir .meDir{display:block;}
+#meDot .meDir::before{content:"";position:absolute;left:-46px;top:-84px;width:92px;height:84px;background:radial-gradient(ellipse 50% 100% at 50% 100%,rgba(30,144,255,.95) 0%,rgba(30,144,255,.6) 45%,rgba(30,144,255,0) 100%);clip-path:polygon(50% 100%,6% 0,94% 0);transform:scale(var(--ds,1));transform-origin:50% 100%;}
+@media (prefers-reduced-motion:reduce){.santa .pulse,.lights .b,.amEnv,.tab .bdg.show{animation:none;}}
+@media (max-width:350px){.tab{font-size:12.5px;gap:3px;}}
+</style></head><body><div id="app">
+
+<!-- 인트로 -->
+<div id="intro"><canvas id="snowIn"></canvas><div class="inIn">
+ <div class="lights"><svg viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M0,6 Q50,30 100,10 T200,10 T300,10 T400,8" fill="none" stroke="#2D4A35" stroke-width="2"/><g><circle class="b" cx="25" cy="20" r="5" fill="#FF3B4E"/><circle class="b" cx="65" cy="22" r="5" fill="#FFD447"/><circle class="b" cx="115" cy="13" r="5" fill="#41D17A"/><circle class="b" cx="160" cy="20" r="5" fill="#FF3B4E"/><circle class="b" cx="210" cy="12" r="5" fill="#9AD8FF"/><circle class="b" cx="255" cy="20" r="5" fill="#FFD447"/><circle class="b" cx="305" cy="12" r="5" fill="#41D17A"/><circle class="b" cx="350" cy="19" r="5" fill="#FF3B4E"/><circle class="b" cx="390" cy="10" r="5" fill="#FFD447"/></g></svg></div>
+ <div class="inKicker">SANTA ELF HUNT</div>
+ <h1 class="inTitle"><span class="t1">미리메리</span><span class="t2">크리스마스</span></h1>
+ <svg class="inTree" viewBox="0 0 120 130" aria-hidden="true"><path d="M60 8 L64 18 75 18 66 25 69 36 60 29 51 36 54 25 45 18 56 18Z" fill="#FFD447"/><path d="M60 30 L88 66 H74 L98 96 H80 L108 122 H12 L40 96 H22 L46 66 H32Z" fill="#1F8A4C" stroke="#0F5A30" stroke-width="2"/><rect x="52" y="122" width="16" height="8" fill="#7A4A26"/><circle cx="52" cy="62" r="4.5" fill="#D7263D"/><circle cx="70" cy="78" r="4.5" fill="#fff"/><circle cx="44" cy="92" r="4.5" fill="#FFD447"/><circle cx="78" cy="104" r="4.5" fill="#D7263D"/><circle cx="58" cy="108" r="4.5" fill="#9AD8FF"/><circle cx="34" cy="114" r="4" fill="#fff"/><circle cx="88" cy="116" r="4" fill="#FFD447"/></svg>
+ <p class="inLead">서면·전포 골목에 <b>산타요정</b>이 나타났다!<br>지도에서 찾아서 직접 잡아보세요 🎅</p>
+ <div class="inFeat">
+  <div><i>🎅</i><span>산타요정 실시간 위치<small>지도에 지금 어디 있는지 떠요</small></span></div>
+  <div><i>📬</i><span>산타 메시지 알림<small>힌트가 올라오면 바로 알려드려요</small></span></div>
+  <div><i>🎁</i><span>제휴 매장 혜택<small>장식 방울을 누르면 가게 정보</small></span></div>
+ </div>
+ <button class="inBtn" onclick="enterMap()">🎄 산타요정 찾으러 가기</button>
+ <div class="inDate" id="inDate"></div>
+ <div id="demoTagWrap"></div>
+</div></div>
+
+<!-- 상단 -->
+<div id="topbar"><div class="tt">🎄 미리메리 <b>크리스마스</b></div><div class="sub">🎅 산타요정 실시간 위치 · 🔴 장식 방울 = 제휴 매장</div>
+ <div class="topBtns"><button onclick="shareApp()">🔗 공유</button><button onclick="openHelp()">❔</button></div></div>
+<div id="filters"></div>
+
+<!-- 지도 -->
+<div id="mapWrap"><div id="mapLayer"><img id="mapImg" width="2600" height="2679" src="img/map.xmas.webp" alt=""></div></div>
+<canvas id="snow"></canvas>
+
+<div id="zoomCtrl">
+ <div class="zbtn locBtn" id="locBtn" onclick="locateMe()" aria-label="내 위치 보기"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-6.2-6.5-11.2A6.5 6.5 0 0 1 18.5 9.8C18.5 14.8 12 21 12 21z"/><circle cx="12" cy="9.8" r="2.4" fill="currentColor" stroke="none"/></svg><span>내 위치</span><b id="locOff" onclick="event.stopPropagation();meOff()">끄기 ✕</b></div>
+ <div class="zbtn" onclick="zoomBy(1.4)" aria-label="확대">+</div>
+ <div class="zbtn" onclick="zoomBy(0.7)" aria-label="축소">−</div>
+ <div class="zbtn resetBtn" onclick="resetView()" aria-label="전체 보기"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>전체</span></div>
+</div>
+
+<!-- 아래 메뉴 -->
+<div id="tabbar">
+ <button class="tab t1" onclick="openSantas()">🎅 산타요정</button>
+ <button class="tab t2" onclick="openInbox()">📬 메시지<span class="bdg" id="inboxBdg"></span></button>
+ <button class="tab t3" onclick="openList()">🎁 제휴 매장</button>
+</div>
+
+<div id="backdrop" onclick="closeSheet()"></div>
+<div id="sheet"><div class="gripZone"><div class="grip"></div></div><div class="sheetClose" onclick="closeSheet()">✕</div><div class="photos" id="shPhotos"></div><div class="sheetBody" id="shBody"></div></div>
+
+<!-- 산타요정 목록 -->
+<div id="santaPage" class="page"><div class="lpHead"><div class="lpTitle">🎅 <b>산타요정</b>을 찾아라!</div><button class="lpX" onclick="closePage('santaPage')" aria-label="닫기">✕</button><div class="lpSub">빨간 점이 깜빡이면 지금 골목에 나와 있어요. 누르면 지도에서 보여드려요</div></div><div class="lpList" id="spList"></div></div>
+
+<!-- 메시지함 -->
+<div id="inboxPage" class="page"><div class="lpHead"><div class="lpTitle">📬 산타가 보낸 <b>메시지</b></div><button class="lpX" onclick="closePage('inboxPage')" aria-label="닫기">✕</button><div class="lpSub">새 메시지가 오면 앱을 켜 둔 동안 바로 알려드려요</div></div><div class="lpList" id="ibList"></div></div>
+
+<!-- 제휴 매장 목록 -->
+<div id="listPage" class="page"><div class="lpHead"><div class="lpTitle" id="lpTitle"></div><button class="lpX" onclick="closePage('listPage')" aria-label="닫기">✕</button><div class="lpSub">가게를 누르면 혜택·메뉴·길찾기를 볼 수 있어요</div><div class="lpChips" id="lpChips"></div></div><div class="lpGrid" id="lpGrid"></div></div>
+
+<div id="pickSheet"><div class="pkDim" onclick="closePicker()"></div><div class="pkCard"><div class="pkTitle" id="pkTitle"></div><div id="pkList"></div><button class="pkClose" onclick="closePicker()">닫기</button></div></div>
+<div id="navModal" onclick="if(event.target===this)closeNav()"><div class="navCard"><div class="navTitle">길찾기 앱 선택</div><div class="navOpt" onclick="openNav('kakao')"><div class="ic" style="background:#FEE500;color:#3C1E1E;">K</div><div class="nm">카카오맵</div></div><div class="navOpt" onclick="openNav('naver')"><div class="ic" style="background:#03C75A;">N</div><div class="nm">네이버 지도</div></div><div class="navOpt" onclick="openNav('google')"><div class="ic" style="background:#4285F4;">G</div><div class="nm">Google Maps</div></div><div class="navCancel" onclick="closeNav()">취소</div></div></div>
+<div id="lightbox"><div class="x" onclick="closeLightbox()">✕</div><div id="lbTrack"></div><div id="lbDots"></div></div>
+
+<!-- 산타 메시지 팝업 -->
+<div id="alertModal"><div class="amCard"><div class="amEnv">🎅</div><div class="amKick">NEW MESSAGE</div><div class="amTitle" id="amTitle"></div><div id="amFrom"></div><div class="amMsg" id="amMsg"></div><div id="amBtn"></div><button class="amLater" onclick="closeAlert()">나중에 볼게요</button></div></div>
+
+<div id="helpModal" onclick="if(event.target===this)closeHelp()"><div class="hpCard"><h3>🎄 이렇게 써요</h3><ul id="hpList"></ul><button onclick="closeHelp()">알겠어요!</button></div></div>
+<div class="copyToast" id="copyToast"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/santas.js"></script>
+<script src="js/backend.js"></script>
+<script src="data/shops.js"></script>
+<script>
+const $id = id => document.getElementById(id);
+const CATS = ['전체','카페','맛집','분식','디저트','주점','패션','소품','미용','문화'];
+const CAT_COLOR = {'카페':'#D7263D','맛집':'#F0A030','분식':'#F2C14E','디저트':'#F06292','주점':'#3B8BEB','패션':'#2ECC71','소품':'#A66BD3','미용':'#F06292','문화':'#1ABC9C','본부':'#E8C468'};
+const ANALYTICS = { goatcounter: '' };   /* GoatCounter 쓰면 사이트 이름 넣기 */
+function track(ev, label) { try { if (ANALYTICS.goatcounter && window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: ev + (label ? '/' + label : ''), title: label || ev, event: true }); } catch (e) {} }
+const UA = navigator.userAgent, INAPP = /; wv\)|KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|DaumApps|BAND\//i.test(UA);
+function isIOS() { return /iPad|iPhone|iPod/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function isOpen(id) { const e = $id(id); return !!e && (e.classList.contains('show') || e.classList.contains('open')); }
+function toast(t, ms) { const el = $id('copyToast'); el.textContent = t; el.classList.add('show'); clearTimeout(window._ct); window._ct = setTimeout(() => el.classList.remove('show'), ms || 1800); }
+
+$id('inDate').textContent = `${EVENT.dates} · ${EVENT.place}`;
+if (!BE.LIVE) $id('demoTagWrap').innerHTML = '<span class="demoTag">연습 모드 · 가짜 산타가 움직여요</span>';
+
+/* ================= 지도 기본 ================= */
+const mapLayer = $id('mapLayer'), mapImg = $id('mapImg'), wrap = $id('mapWrap');
+let IW = 2600, IH = 2679, activeCat = '전체', curShop = null, entered = false;
+const gx = x => x * IW, gy = y => y * IH;
+
+/* 뒤로가기: 열린 창부터 하나씩 닫기 */
+const BACK_OVL = [['alertModal','show',()=>closeAlert()],['helpModal','show',()=>closeHelp()],['lightbox','show',()=>closeLightbox()],['navModal','show',()=>closeNav()],['pickSheet','show',()=>closePicker()],['sheet','open',()=>closeSheet()],['listPage','show',()=>closePage('listPage')],['santaPage','show',()=>closePage('santaPage')],['inboxPage','show',()=>closePage('inboxPage')]];
+function topOverlay() { for (const [id, c, fn] of BACK_OVL) { const el = $id(id); if (el && el.classList.contains(c)) return fn; } return null; }
+function guardDepth() { return (history.state && history.state.sjg) || 0; }
+function ensureGuard() { const d = guardDepth(); for (let i = d + 1; i <= 4; i++) { try { history.pushState({ sjg: i }, ''); } catch (e) {} } }
+function guardOnTouch() { if (entered) ensureGuard(); }
+document.addEventListener('pointerdown', guardOnTouch, true);
+window.addEventListener('popstate', () => { const fn = topOverlay(); if (fn) { fn(); return; } const d = guardDepth(); if (entered) toast('뒤로가기를 한 번 더 누르면 앱이 닫혀요', 2000); if (d > 0) history.go(-d); });
+
+/* ================= 제휴 매장 (장식 방울) ================= */
+function renderMarkers() {
+  mapLayer.querySelectorAll('.marker').forEach(m => m.remove());
+  SHOPS.forEach(s => {
+    const m = document.createElement('div'); m.className = 'marker' + (s.cat === '본부' ? ' hq' : ''); m.dataset.cat = s.cat;
+    m.style.left = gx(s.x) + 'px'; m.style.top = gy(s.y) + 'px';
+    m.innerHTML = ornSVG(CAT_COLOR[s.cat] || '#D7263D', s.cat === '본부') + `<div class="lbl">${escHTML(s.short || s.name)}</div>`;
+    const mid = s.id; m._id = mid; let sx = 0, sy = 0, st = 0;
+    m.addEventListener('touchstart', e => { e.stopPropagation(); const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); }, { passive: false });
+    m.addEventListener('touchend', e => { e.stopPropagation(); e.preventDefault(); const t = e.changedTouches[0]; if (Date.now() - st < 600 && Math.abs(t.clientX - sx) < 30 && Math.abs(t.clientY - sy) < 30) markerTap(mid, t.clientX, t.clientY); }, { passive: false });
+    m.addEventListener('click', e => { e.stopPropagation(); markerTap(mid, e.clientX, e.clientY); });
+    mapLayer.appendChild(m);
+  });
+  applyFilter();
+}
+function buildFilters() {
+  const box = $id('filters'); box.innerHTML = '';
+  CATS.filter(c => c === '전체' || SHOPS.some(s => s.cat === c)).forEach(c => {
+    const chip = document.createElement('div'); chip.className = 'chip' + (c === '전체' ? ' active' : ''); chip.textContent = c;
+    chip.onclick = () => { activeCat = c; applyFilter(); }; box.appendChild(chip);
+  });
+}
+function applyFilter() {
+  [...$id('filters').children].forEach(x => x.classList.toggle('active', x.textContent === activeCat));
+  setTimeout(declutter, 30);
+  document.querySelectorAll('.marker').forEach(m => { if (m.classList.contains('hq')) return; m.classList.toggle('dim', !(activeCat === '전체' || m.dataset.cat === activeCat)); });
+}
+function markerTap(id, x, y) {
+  const near = [];
+  document.querySelectorAll('.marker').forEach(m => { if (m.classList.contains('dim') && m._id !== id) return; const r = m.querySelector('.orn').getBoundingClientRect(); const d = Math.hypot(r.left + r.width / 2 - x, r.top + r.height / 2 - y); if (m._id === id || d < Math.max(30, r.width * 0.9)) near.push([d, m._id]); });
+  near.sort((a, b) => a[0] - b[0]); if (near.length <= 1) { openShop(id); return; } openPicker(near.map(n => n[1]));
+}
+const PHONE_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="#fff" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>';
+function shopThumb(s) { const p = s.photos || [], src = p[s.coverIdx || 0] || p[0]; return src ? `<img class="scImg${s.coverFit ? ' fit' : ''}" src="${src}" alt="" loading="lazy" decoding="async">` : `<div class="scImg scPh">${ornSVG(CAT_COLOR[s.cat] || '#D7263D')}</div>`; }
+function discLine(s) { return s.discount ? `<div class="scDisc">🎁 ${escHTML(s.discount)}</div>` : '<div class="scDisc pend">🎁 혜택 준비 중</div>'; }
+function shopRow(s, onclick, cta) { return `<div class="sRow${s.cat === '본부' ? ' hq' : ''}" onclick="${onclick}">${shopThumb(s)}<div class="scBody"><span class="cat">${s.cat}</span><div class="scName">${escHTML(s.short || s.name)}</div>${discLine(s)}</div>${cta ? `<span class="go">${cta}</span>` : ''}</div>`; }
+function shopCard(s, onclick) { return `<div class="sCard${s.cat === '본부' ? ' hq' : ''}" onclick="${onclick}">${shopThumb(s)}<div class="scBody"><span class="cat">${s.cat === '본부' ? '축제 본부' : s.cat}</span><div class="scName">${escHTML(s.short || s.name)}</div>${discLine(s)}</div></div>`; }
+function focusShop(id) { const s = SHOPS.find(x => x.id === id); if (!s) return; closePicker(); closePage('listPage'); zoomTo(2.6); centerMapOn(gx(s.x), gy(s.y), 0.25); openShop(id); }
+let lpCat = '전체';
+function openList() {
+  const cats = ['전체', ...new Set(SHOPS.map(s => s.cat))];
+  $id('lpTitle').innerHTML = `🎁 <b>제휴 매장</b> ${SHOPS.length}곳`;
+  $id('lpChips').innerHTML = cats.map(c => `<div class="chip${c === lpCat ? ' active' : ''}" onclick="lpCat='${c}';openList()">${c === '본부' ? '축제 본부' : c}</div>`).join('');
+  const list = SHOPS.filter(s => lpCat === '전체' || s.cat === lpCat).sort((a, b) => (b.cat === '본부') - (a.cat === '본부'));
+  $id('lpGrid').innerHTML = list.map(s => shopCard(s, `focusShop('${s.id}')`)).join('');
+  if (!isOpen('listPage')) { openPage('listPage'); track('list'); }
+}
+function openPage(id) { ['listPage', 'santaPage', 'inboxPage'].forEach(p => { if (p !== id) closePage(p); }); closeSheet(); const e = $id(id); e.classList.add('show'); e.scrollTop = 0; }
+function closePage(id) { const e = $id(id); if (e) e.classList.remove('show'); }
+function openPicker(ids) { window._ovAt = Date.now(); $id('pkTitle').textContent = `이 근처 가게 ${ids.length}곳 · 골라주세요 👇`; $id('pkList').innerHTML = ids.map(i => SHOPS.find(s => s.id === i)).filter(Boolean).map(s => shopRow(s, `closePicker();openShop('${s.id}')`, '보기 ▸')).join(''); $id('pickSheet').classList.add('show'); }
+function closePicker() { $id('pickSheet').classList.remove('show'); }
+let curPhotos = [];
+function fmtPrice(p) { const t = String(p || ''), dg = t.replace(/[^0-9]/g, ''); return dg ? Number(dg).toLocaleString() + '원' + (t.includes('~') ? '~' : '') : t; }
+function openSheet() { $id('sheet').classList.add('open'); $id('backdrop').classList.add('show'); $id('sheet').scrollTop = 0; }
+function openShop(id) {
+  const s = SHOPS.find(x => x.id === id); if (!s) return; curShop = s; window._ovAt = Date.now();
+  curPhotos = (s.photos || []).filter(Boolean);
+  $id('shPhotos').innerHTML = curPhotos.map((p, i) => `<div class="photo" style="background-image:url('${p}')${s.coverFit && i === (s.coverIdx || 0) ? ';background-size:contain;background-repeat:no-repeat;background-color:#fff' : ''}" onclick="openLightbox(${i})"></div>`).join('');
+  let menuHTML = '';
+  if (s.menus && s.menus.length) {
+    const hasPh = s.menus.some(m => m.photo);
+    menuHTML = `<div class="menuHead">메뉴${hasPh ? '<span class="menuHint">📷 표시 메뉴는 눌러서 사진 보기</span>' : ''}</div>` + s.menus.map((m, mi) => {
+      const th = m.photo ? `<div class="menuThumb" style="background-image:url('${m.photo}')"></div>` : '';
+      const badge = m.rep ? `<span class="recBadge">${ornSVG('#E8C468', true)}산타요정 추천!</span>` : '';
+      return `<div class="menuItem${m.rep ? ' rec' : ''}${m.photo ? ' zoomable' : ''}"${m.photo ? ` onclick="openMenuPhotos(${mi})"` : ''}>${th}<div class="menuTx">${badge}<div class="menuNm">${escHTML(m.name)}</div>${m.desc ? `<div class="menuDesc">${escHTML(m.desc)}</div>` : ''}</div><div class="menuPrice">${fmtPrice(m.price)}${m.photo ? '<span class="camIc">📷</span>' : ''}</div></div>`;
+    }).join('');
+  }
+  const addr = s.addr ? `<div class="info"><span class="k">주소</span><span class="v" onclick="copyText(curShop.addr)">${escHTML(s.addr)}<span class="cp">📋복사</span></span></div>` : '';
+  const disc = `<div class="discount${s.discount ? '' : ' pending'}"><span class="dtag">🎁 혜택</span><span class="dtxt">${s.discount ? escHTML(s.discount) + '<small>가게에서 이 화면을 보여주세요</small>' : '혜택 준비 중<small>정해지면 여기에 바로 표시돼요</small>'}</span></div>`;
+  const discImg = s.discImg ? `<div class="discImg" onclick="openDiscImg()"><img src="${s.discImg}" alt="" loading="lazy"><span>🔍 혜택 전체 보기</span></div>` : '';
+  $id('shBody').innerHTML = `<div class="shName">${escHTML(s.name)} <span class="cat">${s.cat}</span></div>${s.desc ? `<div class="shDesc">${escHTML(s.desc)}</div>` : ''}${disc}${discImg}${s.hours ? `<div class="info"><span class="k">영업시간</span><span class="v">${escHTML(s.hours)}</span></div>` : ''}${addr}${menuHTML}<div class="actions"><button class="btn primary" onclick="showNav()">길찾기</button>${s.phone ? `<button class="btn call" onclick="callShop()" aria-label="전화 걸기">${PHONE_SVG}<span>전화</span></button>` : ''}</div>`;
+  openSheet(); track('shop', s.name);
+}
+function closeSheet() { $id('sheet').classList.remove('open'); $id('backdrop').classList.remove('show'); curSantaSheet = null; }
+function callShop() { if (curShop && curShop.phone) { track('call', curShop.name); location.href = 'tel:' + curShop.phone.replace(/[^0-9]/g, ''); } }
+function copyText(t) {
+  const done = () => toast('복사되었습니다', 1500);
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(() => fb(t)); else fb(t);
+  function fb(x) { const ta = document.createElement('textarea'); ta.value = x; ta.style.position = 'fixed'; ta.style.opacity = 0; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(ta); }
+}
+function showNav() { $id('navModal').classList.add('show'); } function closeNav() { $id('navModal').classList.remove('show'); }
+function isRealAddr(a) { return a && /[가-힣]/.test(a) && !/^0\d/.test(a.trim()); }
+function openNav(kind) {
+  if (!curShop) return; const s = curShop, nm = encodeURIComponent(s.name), q = encodeURIComponent(s.name + ' 부산 서면 전포'), qA = isRealAddr(s.addr) ? encodeURIComponent(s.name + ' ' + s.addr) : q, ll = s.lat && s.lng;
+  const kid = (s.note || '').startsWith('kakao:') ? s.note.slice(6) : ''; let url = '';
+  if (kind === 'kakao') url = kid ? `https://place.map.kakao.com/${kid}` : (ll ? `https://map.kakao.com/link/map/${nm},${s.lat},${s.lng}` : `https://map.kakao.com/link/search/${qA}`);
+  if (kind === 'google') url = `https://www.google.com/maps/search/?api=1&query=${ll ? s.lat + ',' + s.lng : qA}`;
+  if (kind === 'naver') url = s.naverId ? `https://m.place.naver.com/place/${s.naverId}/location` : `https://m.map.naver.com/search?query=${encodeURIComponent(s.name + ' 부산진구')}`;
+  track('nav', s.name); window.open(url, '_blank'); closeNav();
+}
+/* 사진 크게 보기 */
+let lbImgs = [], lbCaps = [], lbIdx = 0;
+function openLightbox(i) { lbImgs = curPhotos.slice(); lbCaps = []; lbIdx = i; showLightbox(); }
+function openMenuPhotos(mi) { const L = curShop.menus.map((m, i) => ({ m, i })).filter(x => x.m.photo); if (!L.length) return; lbImgs = L.map(x => x.m.photo); lbCaps = L.map(x => { const p = fmtPrice(x.m.price); return x.m.name + (p ? '  ·  ' + p : ''); }); lbIdx = Math.max(0, L.findIndex(x => x.i === mi)); showLightbox(); }
+function openDiscImg() { if (!curShop || !curShop.discImg) return; lbImgs = [curShop.discImg]; lbCaps = [curShop.name + ' · 혜택']; lbIdx = 0; showLightbox(); }
+function showLightbox() { $id('lbTrack').innerHTML = lbImgs.map((u, i) => `<div class="lbSlide"><figure class="lbFig"><img src="${u}" alt="">${lbCaps[i] ? `<figcaption>${escHTML(lbCaps[i])}</figcaption>` : ''}</figure></div>`).join(''); $id('lbDots').innerHTML = lbImgs.length > 1 ? lbImgs.map((_, i) => `<span class="${i === lbIdx ? 'on' : ''}"></span>`).join('') : ''; $id('lightbox').classList.add('show'); lbGo(lbIdx, false); }
+function closeLightbox() { $id('lightbox').classList.remove('show'); }
+function lbGo(i, anim) { lbIdx = Math.max(0, Math.min(lbImgs.length - 1, i)); const tr = $id('lbTrack'); tr.classList.toggle('dragging', !anim); tr.style.transform = `translateX(${-lbIdx * 100}%)`; [...$id('lbDots').children].forEach((d, i2) => d.classList.toggle('on', i2 === lbIdx)); }
+(function () { const lb = $id('lightbox'); let sx = 0, dx = 0, drag = false; lb.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; drag = true; sx = e.touches[0].clientX; dx = 0; $id('lbTrack').classList.add('dragging'); }, { passive: true }); lb.addEventListener('touchmove', e => { if (!drag || e.touches.length !== 1) return; dx = e.touches[0].clientX - sx; $id('lbTrack').style.transform = `translateX(calc(${-lbIdx * 100}% + ${dx}px))`; }, { passive: true }); lb.addEventListener('touchend', () => { if (!drag) return; drag = false; if (Math.abs(dx) > 60) lbGo(lbIdx + (dx < 0 ? 1 : -1), true); else lbGo(lbIdx, true); }); })();
+
+/* ================= 산타요정 실시간 위치 ================= */
+let santaData = {}, simData = {}, curSantaSheet = null;
+const santaEls = {};
+function mergedSantas() { const out = {}; SANTAS.forEach(s => { const r = santaData[s.id], m = simData[s.id]; out[s.id] = (r && r.ts && BE.now() - r.ts < SANTA_STALE_MS) ? r : (m || r); }); return out; }
+function renderSantas() {
+  const now = BE.now(), all = mergedSantas();
+  SANTAS.forEach(s => {
+    const v = all[s.id]; let st = santaState(v, now);
+    if (v && v.hidden) st = 'off';
+    const xy = st !== 'off' ? geoToXY(v.lat, v.lng) : null;
+    let el = santaEls[s.id];
+    if (!xy) { if (el) { el.remove(); delete santaEls[s.id]; } return; }
+    if (!el) {
+      el = document.createElement('div'); el.className = 'santa'; el.style.setProperty('--c', s.color);
+      el.innerHTML = `<div class="sIn"><span class="pulse"></span>${santaSVG(s.color, false, 46)}<span class="sNm">${escHTML(s.name)}</span><span class="sAgo"></span></div>`;
+      el.addEventListener('click', e => { e.stopPropagation(); openSanta(s.id); });
+      el.addEventListener('touchend', e => { e.stopPropagation(); e.preventDefault(); openSanta(s.id); }, { passive: false });
+      el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+      mapLayer.appendChild(el); santaEls[s.id] = el;
+      el.style.left = gx(xy.x) + 'px'; el.style.top = gy(xy.y) + 'px';
+    }
+    el.style.left = gx(xy.x) + 'px'; el.style.top = gy(xy.y) + 'px';
+    el.classList.toggle('stale', st === 'stale');
+    if (el._grey !== (st === 'stale')) { el._grey = st === 'stale'; el.querySelector('.santaIc').outerHTML = santaSVG(s.color, el._grey, 46); }
+    const ago = el.querySelector('.sAgo'); ago.textContent = st === 'stale' ? agoText(now - v.ts) + ' 위치' : ''; ago.style.display = st === 'stale' ? '' : 'none';
+  });
+  if (isOpen('santaPage')) renderSantaList();
+  if (curSantaSheet && isOpen('sheet')) openSanta(curSantaSheet, true);
+}
+function santaStateOf(id) { const v = mergedSantas()[id]; if (v && v.hidden) return ['off', v]; return [santaState(v, BE.now()), v]; }
+function stateBadge(st, v) {
+  if (st === 'live') return '<span class="sState live"><i></i>지금 골목에 나와 있어요</span>';
+  if (st === 'stale') return `<span class="sState stale"><i></i>${agoText(BE.now() - v.ts)} 위치</span>`;
+  return '<span class="sState off"><i></i>잠시 숨어 있어요</span>';
+}
+function renderSantaList() {
+  const order = { live: 0, stale: 1, off: 2 };
+  const rows = SANTAS.map(s => { const [st, v] = santaStateOf(s.id); return { s, st, v }; }).sort((a, b) => order[a.st] - order[b.st]);
+  const liveN = rows.filter(r => r.st === 'live').length;
+  $id('spList').innerHTML = `<div class="lpNote">🎅 지금 <b>${liveN}명</b>의 산타요정이 골목에 나와 있어요. 위치가 안 보이면 📬 메시지와 인스타 스토리에서 힌트를 확인하세요!</div>` +
+    rows.map(({ s, st, v }) => `<div class="spRow ${st}" style="--c:${s.color}" onclick="${st === 'off' ? `openSanta('${s.id}')` : `gotoSanta('${s.id}')`}">${santaSVG(s.color, st !== 'live', 52)}<div class="tx"><div class="nm">${escHTML(s.name)}</div><div class="tg">${escHTML(s.tag)}</div>${stateBadge(st, v)}</div><span class="go">${st === 'off' ? '소개' : '지도 ▸'}</span></div>`).join('');
+}
+function openSantas() { renderSantaList(); openPage('santaPage'); track('santas'); }
+function gotoSanta(id) {
+  const v = mergedSantas()[id], xy = v && geoToXY(v.lat, v.lng); closePage('santaPage');
+  if (!xy) { openSanta(id); return; }
+  zoomTo(2.6); centerMapOn(gx(xy.x), gy(xy.y), 0.4); track('santa_go', id);
+  const el = santaEls[id]; if (el) { el.style.zIndex = 31; setTimeout(() => el.style.zIndex = '', 3000); }
+}
+function openSanta(id, refresh) {
+  const s = SANTA_BY_ID[id]; if (!s) return; const [st, v] = santaStateOf(id); curSantaSheet = id;
+  $id('shPhotos').innerHTML = '';
+  $id('shBody').innerHTML = `<div class="sHead">${santaSVG(s.color, st !== 'live', 64)}<div><div class="nm">${escHTML(s.name)}</div><div class="tg">${escHTML(s.tag)}</div></div></div>${stateBadge(st, v)}<div class="sDesc">${escHTML(s.desc)}</div>
+   <div class="actions">${st !== 'off' ? `<button class="btn primary" onclick="closeSheet();gotoSanta('${id}')">📍 지도에서 보기</button>` : ''}${safeLink(EVENT.instagram) ? `<a class="btn insta" href="${escHTML(safeLink(EVENT.instagram))}" target="_blank" rel="noopener" onclick="track('insta_santa')">📸 인스타 힌트</a>` : ''}</div>`;
+  if (!refresh) { window._ovAt = Date.now(); openSheet(); track('santa', id); }
+}
+setInterval(renderSantas, 5000);
+
+/* 연습 모드: 가짜 산타가 가게 사이를 걸어다님 */
+function startSim() {
+  const pts = SHOPS.filter(s => s.lat && s.lng).map(s => [+s.lat, +s.lng]);
+  const st = {}; SANTAS.forEach((s, i) => { const p = pts[(i * 5) % pts.length]; st[s.id] = { lat: p[0], lng: p[1], to: pts[(i * 5 + 3) % pts.length] }; });
+  const step = () => {
+    SANTAS.forEach((s, i) => {
+      const o = st[s.id]; const dl = o.to[0] - o.lat, dg = o.to[1] - o.lng, d = Math.hypot(dl, dg), sp = 0.00012;
+      if (d < sp) o.to = pts[Math.floor(Math.random() * pts.length)]; else { o.lat += dl / d * sp; o.lng += dg / d * sp; }
+      simData[s.id] = i === 4 ? { lat: o.lat, lng: o.lng, acc: 15, ts: BE.now() - 5 * 60 * 1000, on: true } : { lat: o.lat, lng: o.lng, acc: 12, ts: BE.now(), on: true };
+      if (i === 3) simData[s.id] = null;   /* 1명은 쉬는 중 */
+    });
+    renderSantas();
+  };
+  step(); setInterval(step, 2500);
+}
+
+/* ================= 산타 메시지 (알림) ================= */
+let alerts = [], seenTs = 0, pendingAlert = null, demoAlerts = [];
+try { seenTs = +localStorage.getItem('xmas_seen') || 0; } catch (e) {}
+const onceSet = k => { try { const o = JSON.parse(localStorage.getItem('xmas_once') || '{}'); if (o[k]) return false; o[k] = 1; localStorage.setItem('xmas_once', JSON.stringify(o)); return true; } catch (e) { return true; } };
+function allAlerts() { return [...alerts, ...demoAlerts].sort((a, b) => b.ts - a.ts); }
+function onAlerts(list) {
+  alerts = list; updateBadge();
+  if (isOpen('inboxPage')) renderInbox();
+  const n = allAlerts()[0];
+  if (n && n.ts > seenTs && BE.now() - n.ts < 60 * 60 * 1000) { if (entered) showAlert(n); else pendingAlert = n; }
+}
+function updateBadge() { const c = allAlerts().filter(a => a.ts > seenTs).length, b = $id('inboxBdg'); b.textContent = c; b.classList.toggle('show', c > 0); }
+function markSeen(ts) { if (ts > seenTs) { seenTs = ts; try { localStorage.setItem('xmas_seen', String(ts)); } catch (e) {} } updateBadge(); }
+function fromHTML(a) { const s = SANTA_BY_ID[a.santa]; return s ? `<span class="amFrom">${santaSVG(s.color, false, 26)}${escHTML(josa(s.name, '이', '가'))} 보냄</span>` : ''; }
+function instaBtn(a) { const u = safeLink(a.link); return u ? `<a class="btn insta" href="${escHTML(u)}" target="_blank" rel="noopener" onclick="alertClick('${a.key}')">📸 인스타에서 확인하기</a>` : ''; }
+function showAlert(a) {
+  closeLightbox(); closeNav();
+  $id('amTitle').textContent = a.title || '🎅 산타로부터 메시지가 도착했어요!';
+  $id('amFrom').innerHTML = fromHTML(a);
+  $id('amMsg').textContent = a.msg || '';
+  $id('amBtn').innerHTML = instaBtn(a) || `<button class="btn insta" onclick="closeAlert();openInbox()">📬 메시지함 보기</button>`;
+  $id('alertModal').classList.add('show'); markSeen(a.ts); jingle();
+  try { if (navigator.vibrate) navigator.vibrate([120, 80, 120, 80, 240]); } catch (e) {}
+  if (a.key && !a.demo && onceSet('o_' + a.key)) BE.bump(a.key, 'opens');
+  track('alert_open', a.key);
+}
+function closeAlert() { $id('alertModal').classList.remove('show'); }
+function alertClick(key) { setTimeout(closeAlert, 300); const a = allAlerts().find(x => x.key === key); if (a && !a.demo && onceSet('c_' + key)) BE.bump(key, 'clicks'); track('alert_click', key); }
+function renderInbox() {
+  const list = allAlerts(), now = BE.now();
+  $id('ibList').innerHTML = list.length ? list.map(a => `<div class="msg${a.ts > seenTs ? ' new' : ''}"><div class="ma">${agoText(now - a.ts)}</div><div class="mt">${escHTML(a.title || '🎅 산타로부터 메시지가 도착했어요!')}</div>${fromHTML(a) ? `<div style="margin-top:6px">${fromHTML(a)}</div>` : ''}${a.msg ? `<div class="mb">${escHTML(a.msg)}</div>` : ''}${instaBtn(a)}</div>`).join('')
+    : `<div class="empty">아직 도착한 메시지가 없어요 🎄<br>산타요정이 힌트를 보내면 여기에 쌓여요</div>`;
+}
+function openInbox() { renderInbox(); openPage('inboxPage'); const n = allAlerts()[0]; if (n) markSeen(n.ts); track('inbox'); }
+
+/* 딸랑딸랑 소리 (사용자가 한 번 누른 뒤에만 나요) */
+let actx = null;
+function unlockAudio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) {} }
+function jingle() {
+  if (!actx) return; const t0 = actx.currentTime;
+  [[1318.5, 0], [1568, .12], [2093, .24], [1568, .42], [2093, .54]].forEach(([f, d]) => {
+    const o = actx.createOscillator(), g = actx.createGain(); o.type = 'triangle'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.22, t0 + d + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.45);
+    o.connect(g).connect(actx.destination); o.start(t0 + d); o.stop(t0 + d + 0.5);
+  });
+}
+
+/* ================= 도움말 · 공유 ================= */
+function openHelp() {
+  $id('hpList').innerHTML = [
+    [santaSVG('#D7263D', false, 30), '<b>🎅 동그라미</b> = 산타요정 실시간 위치. 회색이면 몇 분 전 위치예요'],
+    [ornSVG('#D7263D'), '<b>장식 방울</b> = 제휴 매장. 누르면 혜택·메뉴·길찾기'],
+    ['<i>📬</i>', '산타가 힌트를 보내면 <b>메시지</b>가 떠요. 인스타 버튼을 눌러 확인!'],
+    ['<i>📍</i>', '오른쪽 <b>내 위치</b>를 누르면 지도에 내가 표시돼요'],
+    ['<i>🔔</i>', '알림은 <b>앱을 켜 둔 동안</b> 와요. 홈 화면에 추가해 두면 편해요'],
+  ].map(([i, t]) => `<li>${i}<span>${t}</span></li>`).join('');
+  $id('helpModal').classList.add('show');
+}
+function closeHelp() { $id('helpModal').classList.remove('show'); }
+async function shareApp() {
+  track('share'); const url = location.origin + location.pathname, data = { title: '미리메리 크리스마스 🎅 산타요정 지도', text: '서면·전포 골목에 산타요정이 나타났다! 실시간 위치 보고 잡으러 가기', url };
+  if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(() => toast('링크를 복사했어요! 카톡·인스타에 붙여넣기 해 주세요 🔗', 2800)).catch(() => window.prompt('아래 링크를 복사해서 보내 주세요', url)); else window.prompt('아래 링크를 복사해서 보내 주세요', url);
+}
+
+/* ================= 내 위치 (귀신의집 앱에서 검증된 코드) ================= */
+const ME_ACC_FIRST = 50, ME_ACC = 60;
+let meWatch = null, meGot = false, meCoarse = 0, meFar = 0, meMinAcc = 1e9, meCand = null, meOut = 0, meLastOk = 0, meTick = null;
+function meLbl(t) { const e = $id('locBtn').querySelector('span'); if (e) e.textContent = t; }
+function meDist(a, c) { return Math.hypot((c.longitude - a.longitude) * 111320 * 0.8178, (c.latitude - a.latitude) * 110950); }
+function meFarOut(c) { const dx = Math.max(GEO_B.W - c.longitude, 0, c.longitude - GEO_B.E) * 111320 * 0.8178, dy = Math.max(GEO_B.S - c.latitude, 0, c.latitude - GEO_B.N) * 110950; return Math.hypot(dx, dy) > c.accuracy + 200; }
+function meHelp(kind) {
+  if (INAPP) return '이 앱 안에서는 위치가 잘 안 잡혀요. 화면 메뉴(⋮ 또는 ⋯)에서 "다른 브라우저로 열기"를 누른 뒤 다시 눌러주세요';
+  if (kind === 'deny') return isIOS() ? '위치 권한이 꺼져 있어요. 주소창 왼쪽 「가가」 → 웹 사이트 설정 → 위치 → 허용 후 다시 눌러주세요' : '위치 권한이 꺼져 있어요. 주소창 왼쪽 아이콘 → 권한 → 위치 → 허용 후 다시 눌러주세요';
+  if (kind === 'off') return '위치를 못 찾았어요. 휴대폰의 위치(GPS)가 켜져 있는지 확인하고 다시 눌러주세요';
+  if (kind === 'coarse') return meMinAcc >= 1000 ? '정확한 위치를 못 잡았어요. 위치 권한이 "대략적 위치"라면 "정확한 위치"로 바꾼 뒤 다시 눌러주세요' : '건물 안이라 GPS가 약해요. 밖으로 나와서 다시 눌러주세요';
+  return '위치를 못 찾았어요. 하늘이 보이는 곳에서 다시 눌러주세요';
+}
+function locateMe() {
+  if (meWatch !== null && !meGot) { toast('📍 아직 위치를 찾는 중이에요. 잠시만 기다려 주세요', 2500); return; }
+  if (meWatch !== null) { meRecenter(); return; }
+  track('loc'); if (!navigator.geolocation || !window.isSecureContext) { toast('이 브라우저에서는 위치 기능을 쓸 수 없어요', 2600); return; }
+  meGot = false; meCoarse = 0; meFar = 0; meMinAcc = 1e9; meCand = null; meOut = 0; meLastOk = 0;
+  $id('locBtn').classList.add('busy'); meLbl('찾는 중'); toast('📍 GPS로 내 위치 찾는 중…', 4000);
+  meWatch = navigator.geolocation.watchPosition(onMe, onMeErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+  clearTimeout(window._meWait); window._meWait = setTimeout(() => { if (meWatch !== null && !meGot) { stopMe(true); toast(meHelp(meCoarse ? 'coarse' : ''), 4500); } }, 35000);
+  meArmStop(); meDirStart(); clearInterval(meTick); meTick = setInterval(meCheck, 5000);
+}
+const ME_IDLE = 20 * 60 * 1000;
+function meArmStop() { clearTimeout(window._meStop); window._meStop = setTimeout(() => { if (meWatch === null) return; stopMe(true); toast('🔋 배터리 절약을 위해 내 위치 표시를 껐어요. 다시 누르면 켜져요', 3500); }, ME_IDLE); }
+function meRecenter() { const d = $id('meDot'); if (!d) { meArmStop(); toast('📍 아직 위치를 찾는 중이에요. 잠시만 기다려 주세요', 2500); return; } meArmStop(); meDirStart(); if (scale < coverScale() * 2) zoomTo(2.4); centerMapOn(parseFloat(d.style.left), parseFloat(d.style.top), 0.5); toast(d.classList.contains('stale') ? '📍 마지막으로 잡힌 내 위치예요 · GPS 신호를 기다리는 중' : '📍 내 위치로 이동했어요', 1500); }
+function meOff() { stopMe(true); toast('📍 내 위치 표시를 껐어요 · 다시 누르면 켜져요', 1800); }
+let meHd = null, meHdCont = null, meHdT = 0, meHdSrc = '', meDirOn = false, meHdRaf = 0;
+function meScreenAng() { try { return (screen.orientation && typeof screen.orientation.angle === 'number') ? screen.orientation.angle : (window.orientation || 0); } catch (e) { return 0; } }
+function meSetHd(h, src, abs) { if (!(h >= 0 && h <= 360)) return; meHd = ((abs ? h : h + meScreenAng()) % 360 + 360) % 360; meHdT = Date.now(); meHdSrc = src; if (!meHdRaf) meHdRaf = requestAnimationFrame(meDrawHd); }
+function meDrawHd() { meHdRaf = 0; const d = $id('meDot'); if (!d || meHd === null) return; if (meHdCont === null) meHdCont = meHd; else meHdCont += ((meHd - meHdCont) % 360 + 540) % 360 - 180; const e = d.querySelector('.meDir'); if (!e) return; e.style.transform = 'rotate(' + meHdCont.toFixed(1) + 'deg)'; d.classList.add('hasDir'); }
+function onMeOri(e) { if (typeof e.webkitCompassHeading === 'number') { if (e.webkitCompassAccuracy < 0 || !(e.webkitCompassHeading >= 0)) return; meSetHd(e.webkitCompassHeading, 'ios'); return; } if (e.absolute && typeof e.alpha === 'number') meSetHd(360 - e.alpha, 'abs'); }
+function meDirStart() {
+  if (meDirOn) return; const go = () => { if (meDirOn || meWatch === null) return; meDirOn = true; window.addEventListener('ondeviceorientationabsolute' in window ? 'deviceorientationabsolute' : 'deviceorientation', onMeOri); };
+  if (!window.DeviceOrientationEvent) return; if (!isIOS()) { go(); return; }
+  try { if (typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission().then(r => { if (r === 'granted') go(); }).catch(() => {}); else go(); } catch (e) {}
+}
+function meDirStop() { window.removeEventListener('deviceorientationabsolute', onMeOri); window.removeEventListener('deviceorientation', onMeOri); meDirOn = false; meHd = null; meHdCont = null; meHdSrc = ''; cancelAnimationFrame(meHdRaf); meHdRaf = 0; const d = $id('meDot'); if (d) d.classList.remove('hasDir'); }
+function meCheck() { if (meWatch === null || !meGot) return; const age = Date.now() - meLastOk, d = $id('meDot'); if (age > 60000) { stopMe(true); toast('GPS 신호가 끊겨 내 위치 표시를 껐어요. 밖에서 다시 눌러주세요', 3500); } else if (age > 20000 && d) meStale(d); }
+function meStale(d) { if (!d.classList.contains('stale')) { d.classList.add('stale'); d.querySelector('.mePin b').textContent = '마지막 위치'; } }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && meGot) { const d = $id('meDot'); if (d) meStale(d); } });
+function stopMe(hide) { meDirStop(); if (meWatch !== null) { navigator.geolocation.clearWatch(meWatch); meWatch = null; } clearTimeout(window._meWait); clearTimeout(window._meStop); clearTimeout(window._meCandT); clearInterval(meTick); meTick = null; $id('locBtn').classList.remove('busy', 'on'); meLbl('내 위치'); if (hide) { const d = $id('meDot'); if (d) d.remove(); } }
+function onMe(p) {
+  if (meWatch === null) return; const c = p.coords;
+  if (isIOS() && p.timestamp) { const age = Date.now() - p.timestamp; if (age > 15000 && age < 864e5) return; }
+  if (!(c.accuracy > 0) || c.accuracy > (meGot ? ME_ACC : ME_ACC_FIRST)) {
+    if (c.accuracy > 0) { meMinAcc = Math.min(meMinAcc, c.accuracy); if (!meGot && meFarOut(c) && ++meFar >= 2) { stopMe(true); toast('지금은 축제 지도 밖이라 위치를 표시하지 않아요', 3000); return; } }
+    meCoarse++; return;
+  }
+  if (!meGot) { const ok = meCand && meDist(meCand, c) <= meCand.accuracy + c.accuracy + 10; meCand = { latitude: c.latitude, longitude: c.longitude, accuracy: c.accuracy }; clearTimeout(window._meCandT); if (!ok) { window._meCandT = setTimeout(() => { if (meWatch !== null && !meGot && meCand) meShow(meCand); }, 6000); return; } }
+  meShow(c);
+}
+function meShow(c) {
+  const xy = geoToXY(c.latitude, c.longitude);
+  if (!xy) { const d = $id('meDot'); if (d) meStale(d); if (!meGot || ++meOut >= 2) { const first = !meGot; stopMe(true); toast(first ? '지금은 축제 지도 밖이라 위치를 표시하지 않아요' : '축제 지도 밖으로 나가서 위치 표시를 껐어요', 3000); } return; }
+  meOut = 0; meLastOk = Date.now(); clearTimeout(window._meCandT);
+  let d = $id('meDot'); if (!d) { d = document.createElement('div'); d.id = 'meDot'; d.innerHTML = '<div class="meAcc"></div><div class="mePin"><span class="meDir"></span><i></i><b>나</b></div>'; mapLayer.appendChild(d); if (meHd !== null) { meHdCont = null; meDrawHd(); } }
+  d.classList.remove('stale'); d.querySelector('.mePin b').textContent = '나';
+  d.style.left = gx(xy.x) + 'px'; d.style.top = gy(xy.y) + 'px';
+  if (c.heading != null && c.heading >= 0 && c.speed > 0.7 && (meHdSrc === 'gps' || Date.now() - meHdT > 3000)) meSetHd(c.heading, 'gps', true); else if (meHdSrc === 'gps') { meHd = null; meHdCont = null; meHdSrc = ''; d.classList.remove('hasDir'); }
+  const a = d.querySelector('.meAcc'); a.style.width = a.style.height = (2 * c.accuracy / GEO_MPX) + 'px';
+  $id('locBtn').classList.remove('busy'); $id('locBtn').classList.add('on'); meLbl('내 위치');
+  if (!meGot) { meGot = true; clearTimeout(window._meWait); if (scale < coverScale() * 2) zoomTo(2.4); centerMapOn(gx(xy.x), gy(xy.y), 0.5); toast(c.accuracy <= 20 ? '📍 여기가 내 위치예요 · 걸으면 따라 움직여요' : `📍 이 근처에 있어요 (오차 약 ${Math.round(c.accuracy)}m)`, 3200); }
+}
+function onMeErr(e) { if (meWatch === null) return; if (e.code === 1) { stopMe(true); toast(meHelp('deny'), 5000); return; } if (!meGot) { stopMe(true); toast(meHelp(e.code === 2 ? 'off' : (meCoarse ? 'coarse' : '')), 4500); } }
+
+/* ================= 확대·이동 ================= */
+let scale = 1, tx = 0, ty = 0, pinchDist = null, pinchCX = 0, pinchCY = 0, MIN = 0.35; const MAX = 4.5;
+function coverScale() { return Math.max(wrap.clientWidth / IW, wrap.clientHeight / IH); }
+function applyT() { mapLayer.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; mapLayer.style.setProperty('--ms', Math.max(.3, Math.min(3, .5 / scale))); mapLayer.style.setProperty('--ds', Math.min(1, 1.7 / scale)); clearTimeout(window._dc); window._dc = setTimeout(declutter, 60); }
+function declutter() {
+  const POS = ['', 'up', 'r', 'l', 'br', 'bl', 'ur', 'ul'];
+  const ms = [...document.querySelectorAll('.marker')].sort((a, b) => (b.classList.contains('hq') - a.classList.contains('hq')) || (a.classList.contains('dim') - b.classList.contains('dim')));
+  const placed = []; const ov = (r, q) => r.left < q.right + 2 && r.right > q.left - 2 && r.top < q.bottom + 2 && r.bottom > q.top - 2;
+  const SR = ms.map(x => [x, x.querySelector('.orn')]).filter(a => a[1]).map(a => [a[0], a[1].getBoundingClientRect()]);
+  const hit = (r, m, strict) => placed.some(q => ov(r, q)) || (strict && SR.some(([x, q]) => x !== m && ov(r, q)));
+  ms.forEach(m => { const l = m.querySelector('.lbl'); if (!l) return; l.style.visibility = ''; let ok = false; for (const strict of [true, false]) { for (const p of POS) { l.className = 'lbl' + (p ? ' ' + p : ''); const r = l.getBoundingClientRect(); if (!hit(r, m, strict)) { placed.push(r); ok = true; break; } } if (ok) break; } if (!ok) { l.className = 'lbl'; l.style.visibility = 'hidden'; } });
+}
+function clampPan() { const W = wrap.clientWidth, H = wrap.clientHeight, mw = IW * scale, mh = IH * scale; tx = Math.max(Math.min(0, W - mw), Math.min(0, tx)); ty = Math.max(Math.min(0, H - mh), Math.min(0, ty)); }
+function centerMapOn(px, py, fy) { const W = wrap.clientWidth, H = wrap.clientHeight; tx = W / 2 - px * scale; ty = H * (fy || 0.42) - py * scale; clampPan(); applyT(); }
+function zoomTo(k) { MIN = coverScale(); scale = Math.max(MIN, Math.min(MAX, MIN * k)); }
+function fitInit() { MIN = coverScale(); scale = Math.min(MAX, MIN * 1.4); const W = wrap.clientWidth, H = wrap.clientHeight; tx = W / 2 - gx(0.55) * scale; ty = H * 0.5 - gy(0.48) * scale; clampPan(); applyT(); }
+function zoomBy(f, cx, cy) { MIN = coverScale(); const W = wrap.clientWidth, H = wrap.clientHeight; cx = cx ?? W / 2; cy = cy ?? H / 2; const ns = Math.max(MIN, Math.min(MAX, scale * f)); const k = ns / scale; tx = cx - (cx - tx) * k; ty = cy - (cy - ty) * k; scale = ns; clampPan(); applyT(); }
+function resetView() { fitInit(); }
+let dragging = false, psx, psy;
+const onMarker = t => t.closest('.marker') || t.closest('.santa');
+wrap.addEventListener('pointerdown', e => { if (onMarker(e.target) || e.pointerType === 'touch') return; dragging = true; psx = e.clientX - tx; psy = e.clientY - ty; });
+wrap.addEventListener('pointermove', e => { if (!dragging || pinchDist !== null) return; tx = e.clientX - psx; ty = e.clientY - psy; clampPan(); applyT(); });
+wrap.addEventListener('pointerup', () => dragging = false); wrap.addEventListener('pointerleave', () => dragging = false);
+wrap.addEventListener('wheel', e => { e.preventDefault(); zoomBy(e.deltaY < 0 ? 1.12 : 0.9, e.clientX, e.clientY); }, { passive: false });
+let tpx = 0, tpy = 0, tPan = false;
+const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY), mid = t => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
+wrap.addEventListener('touchstart', e => { if (onMarker(e.target)) return; if (e.touches.length === 1) { tPan = true; const t = e.touches[0]; tpx = t.clientX - tx; tpy = t.clientY - ty; } else if (e.touches.length === 2) { tPan = false; pinchDist = dist(e.touches); const m = mid(e.touches), r = wrap.getBoundingClientRect(); pinchCX = m.x - r.left; pinchCY = m.y - r.top; } }, { passive: false });
+wrap.addEventListener('touchmove', e => { if (e.touches.length === 2 && pinchDist) { e.preventDefault(); const r = wrap.getBoundingClientRect(), m = mid(e.touches), cx = m.x - r.left, cy = m.y - r.top, d = dist(e.touches); MIN = coverScale(); const ns = Math.max(MIN, Math.min(MAX, scale * (d / pinchDist))), k = ns / scale; tx = cx - (cx - tx) * k; ty = cy - (cy - ty) * k; tx += (cx - pinchCX); ty += (cy - pinchCY); scale = ns; pinchDist = d; pinchCX = cx; pinchCY = cy; clampPan(); applyT(); } else if (e.touches.length === 1 && tPan) { e.preventDefault(); const t = e.touches[0]; tx = t.clientX - tpx; ty = t.clientY - tpy; clampPan(); applyT(); } }, { passive: false });
+wrap.addEventListener('touchend', e => { if (e.touches.length < 2) pinchDist = null; if (e.touches.length === 0) tPan = false; });
+/* 시트 아래로 끌어서 닫기 */
+(function () { const sheet = $id('sheet'); let sy = 0, dy = 0, drag = false; const start = y => { if (sheet.scrollTop > 2) return; drag = true; sy = y; dy = 0; sheet.classList.add('dragging'); }; const move = y => { if (!drag) return; dy = Math.max(0, y - sy); sheet.style.transform = `translateY(${dy}px)`; }; const end = () => { if (!drag) return; drag = false; sheet.classList.remove('dragging'); sheet.style.transform = ''; if (dy > 110) closeSheet(); }; sheet.addEventListener('touchstart', e => { if (sheet.scrollTop <= 0) start(e.touches[0].clientY); }, { passive: true }); sheet.addEventListener('touchmove', e => { if (drag && dy > 0) e.preventDefault(); move(e.touches[0].clientY); }, { passive: false }); sheet.addEventListener('touchend', end); })();
+document.addEventListener('click', e => { if (Date.now() - (window._ovAt || 0) < 450 && e.target.closest && e.target.closest('#backdrop,#sheet,#pickSheet')) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+/* ================= 눈 내리기 ================= */
+function snowfall(cv, n) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = cv.getContext('2d'); let W = 0, H = 0, flakes = [];
+  const size = () => { const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); W = r.width; H = r.height; cv.width = W * d; cv.height = H * d; ctx.setTransform(d, 0, 0, d, 0, 0); };
+  size(); addEventListener('resize', size);
+  for (let i = 0; i < n; i++) flakes.push({ x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 2.6, s: .3 + Math.random() * .9, w: Math.random() * 6.28 });
+  const draw = () => { if (!document.hidden && cv.offsetParent !== null) { ctx.clearRect(0, 0, W, H); ctx.fillStyle = 'rgba(255,255,255,.85)'; for (const f of flakes) { f.y += f.s; f.w += .02; f.x += Math.sin(f.w) * .4; if (f.y > H + 4) { f.y = -4; f.x = Math.random() * W; } ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.28); ctx.fill(); } } requestAnimationFrame(draw); };
+  draw();
+}
+snowfall($id('snowIn'), 70);
+snowfall($id('snow'), 34);
+
+/* ================= 시작 ================= */
+function enterMap() {
+  unlockAudio(); entered = true; ensureGuard(); $id('intro').classList.add('hide'); track('enter');
+  setTimeout(() => { fitInit(); renderSantas(); }, 0);
+  if (pendingAlert) { const a = pendingAlert; pendingAlert = null; setTimeout(() => showAlert(a), 600); }
+  if (!BE.LIVE && !allAlerts().length) setTimeout(() => { if (allAlerts().length) return; demoAlerts = [{ key: 'demo', demo: 1, ts: BE.now(), santa: 'santa1', title: '🎅 산타로부터 메시지가 도착했어요!', msg: '루돌프 요정이 전포카페거리 근처에서 목격됐대요!\n인스타 스토리에서 힌트 사진을 확인해 보세요 👀\n(연습 모드 예시 메시지예요)', link: safeLink(EVENT.instagram) }]; onAlerts(alerts); }, 7000);
+}
+function init() {
+  IW = mapImg.naturalWidth || 2600; IH = mapImg.naturalHeight || 2679;
+  mapImg.style.width = IW + 'px'; mapImg.style.height = IH + 'px'; mapLayer.style.width = IW + 'px'; mapLayer.style.height = IH + 'px';
+  buildFilters(); renderMarkers(); fitInit();
+}
+(function () { let tries = 0, done = false; const go = () => { if (done) return; done = true; init(); }; const retry = () => { if (tries < 4) { tries++; const u = mapImg.getAttribute('src').split('?')[0]; setTimeout(() => { mapImg.src = u + '?r=' + tries; }, 900 * tries); } else toast('지도 그림을 못 불러왔어요. 새로고침 해주세요', 4000); }; mapImg.addEventListener('error', retry); if (mapImg.complete && mapImg.naturalWidth) go(); else { mapImg.addEventListener('load', go); setTimeout(go, 2500); } })();
+window.addEventListener('resize', () => { clampPan(); applyT(); });
+
+BE.ready().then(() => {
+  BE.onSantas(d => { santaData = d || {}; renderSantas(); });
+  BE.onAlerts(onAlerts, 20);
+  if (!BE.LIVE) startSim();
+}).catch(() => toast('서버에 연결하지 못했어요. 인터넷을 확인하고 새로고침 해주세요', 4000));
+</script>
+</body></html>

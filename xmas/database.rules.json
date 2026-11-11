@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "santas": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email == 'staff@mirimerry.app'"
+      }
+    },
+    "alerts": {
+      ".read": true,
+      ".indexOn": ["ts"],
+      "$id": {
+        ".write": "auth != null && auth.token.email == 'staff@mirimerry.app'",
+        ".validate": "newData.hasChildren(['title', 'ts'])"
+      }
+    },
+    "stats": {
+      ".read": true,
+      "$id": {
+        ".write": "auth != null && auth.token.email == 'staff@mirimerry.app'",
+        "opens": {
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1"
+        },
+        "clicks": {
+          ".write": true,
+          ".validate": "newData.isNumber() && newData.val() == (data.exists() ? data.val() : 0) + 1"
+        }
+      }
+    }
+  }
+}

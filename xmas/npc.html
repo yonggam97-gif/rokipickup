@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>산타요정 NPC · 위치 보내기</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#7E1020">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{--red:#D7263D;--red2:#A3172A;--green:#1F8A4C;--night:#0B2418;--card:#14331F;--gold:#E8C468;--mut:#B7C9BC;--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);}
+html,body{min-height:100%;font-family:'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;background:var(--night);color:#fff;}
+button,input{font-family:inherit;}
+.wrap{max-width:480px;margin:0 auto;padding:calc(18px + var(--sat)) 16px calc(28px + var(--sab));}
+h1{font-size:22px;font-weight:900;margin-bottom:4px;}
+h1 b{color:var(--red);-webkit-text-stroke:.6px #fff;paint-order:stroke fill;}
+.lead{font-size:14px;color:var(--mut);line-height:1.5;margin-bottom:16px;word-break:keep-all;}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:16px;margin-bottom:14px;}
+.card h2{font-size:16px;font-weight:900;margin-bottom:10px;}
+label{display:block;font-size:13px;color:var(--mut);font-weight:700;margin:8px 0 6px;}
+input{width:100%;font-size:17px;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.25);background:#fff;color:#111;outline:none;}
+.btn{width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:900;color:#fff;background:var(--red);margin-top:12px;cursor:pointer;}
+.btn.g{background:rgba(255,255,255,.14);}
+.btn.big{padding:24px;font-size:22px;border-radius:20px;box-shadow:0 6px 0 rgba(0,0,0,.35);}
+.btn.go{background:linear-gradient(180deg,#2AA35E,#167441);}
+.btn.stop{background:linear-gradient(180deg,#E8384E,#B71C2F);}
+.err{color:#FF9AA5;font-size:14px;font-weight:700;margin-top:8px;min-height:1em;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pick{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:16px;background:rgba(255,255,255,.07);border:3px solid transparent;cursor:pointer;font-size:15px;font-weight:900;text-align:center;}
+.pick.on{border-color:var(--c);background:rgba(255,255,255,.16);}
+.me{display:flex;align-items:center;gap:12px;}
+.me .nm{font-size:20px;font-weight:900;}
+.me .tg{font-size:13px;color:var(--mut);}
+.me button{margin-left:auto;white-space:nowrap;flex:0 0 auto;background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:7px 10px;font-size:13px;font-weight:800;cursor:pointer;}
+.status{border-radius:18px;padding:18px;text-align:center;margin-bottom:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);}
+.status .big{font-size:24px;font-weight:900;}
+.status .sm{font-size:14px;color:var(--mut);margin-top:6px;line-height:1.5;word-break:keep-all;}
+.status.ok{background:rgba(46,204,113,.16);border-color:#2ECC71;}
+.status.warn{background:rgba(232,196,104,.16);border-color:var(--gold);}
+.status.bad{background:rgba(215,38,61,.2);border-color:var(--red);}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#2ECC71;margin-right:6px;animation:bl 1.2s ease-in-out infinite;vertical-align:middle;}
+@keyframes bl{50%{opacity:.25;}}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14.5px;margin-top:4px;}
+.kv b{color:var(--gold);font-weight:800;}
+.tips li{list-style:none;font-size:14.5px;line-height:1.55;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08);word-break:keep-all;}
+.tips li:last-child{border-bottom:none;}
+.demo{display:inline-block;font-size:12px;font-weight:800;color:#0B2418;background:var(--gold);padding:3px 9px;border-radius:10px;margin-bottom:10px;}
+.hide{display:none!important;}
+.foot{font-size:12.5px;color:var(--mut);text-align:center;margin-top:10px;}
+.foot a{color:var(--gold);}
+</style></head><body><div class="wrap">
+<h1>🎅 산타요정 <b>NPC</b></h1>
+<p class="lead">이 화면을 켜 두면 내 위치가 손님 지도와 관제실에 실시간으로 떠요.</p>
+<div id="demoTag"></div>
+
+<!-- 1. 로그인 -->
+<div class="card" id="loginCard">
+ <h2>🔐 스태프 로그인</h2>
+ <label>이메일</label><input id="email" type="email" autocomplete="username">
+ <label>비밀번호</label><input id="pw" type="password" autocomplete="current-password">
+ <button class="btn" onclick="doLogin()">로그인</button>
+ <div class="err" id="loginErr"></div>
+</div>
+
+<!-- 2. 산타 고르기 -->
+<div class="card hide" id="pickCard">
+ <h2>👇 나는 어떤 산타요정인가요?</h2>
+ <div class="grid" id="pickGrid"></div>
+</div>
+
+<!-- 3. 위치 보내기 -->
+<div id="runCard" class="hide">
+ <div class="card me" id="meCard"></div>
+ <div class="status" id="status"><div class="big">대기 중</div><div class="sm">아래 버튼을 누르면 위치 보내기를 시작해요</div></div>
+ <button class="btn big go" id="toggleBtn" onclick="toggleRun()">▶ 출동! 위치 보내기 시작</button>
+ <div class="card" style="margin-top:14px">
+  <div class="kv"><b>GPS 오차</b><span id="kAcc">-</span><b>마지막 전송</b><span id="kSent">-</span><b>보낸 횟수</b><span id="kCnt">0</span><b>화면 켜짐 유지</b><span id="kWake">-</span><b>배터리</b><span id="kBat">-</span></div>
+ </div>
+ <div class="card">
+  <h2>⚠️ 꼭 지켜주세요</h2>
+  <ul class="tips">
+   <li>📱 <b>화면을 끄지 마세요.</b> 화면이 꺼지면 위치가 안 가요. (화면 밝기는 최저로 낮춰도 돼요)</li>
+   <li>🚫 <b>이 창을 닫거나 다른 앱으로 넘어가지 마세요.</b> 인스타·카톡을 쓰면 위치가 멈춰요.</li>
+   <li>🔋 보조배터리를 꼭 연결해 두세요.</li>
+   <li>☕ 쉬는 시간엔 <b>■ 위치 보내기 멈춤</b>을 눌러주세요. 손님 지도에서 사라져요.</li>
+   <li>📍 위치 권한은 <b>"정확한 위치"</b>로 허용해 주세요.</li>
+  </ul>
+ </div>
+ <button class="btn g" onclick="logout()">로그아웃</button>
+</div>
+<p class="foot">관제실: <a href="control.html">control.html</a> · 손님 지도: <a href="index.html">index.html</a></p>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/santas.js"></script>
+<script src="js/backend.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let me = null, running = false, watchId = null, last = null, lastSent = 0, sentCnt = 0, wakeLock = null, beat = null, bat = null;
+const MIN_GAP = 5000;      /* 최소 5초 간격으로 보냄 */
+const BEAT = 25000;        /* 가만히 서 있어도 25초마다 '살아 있음' 전송 */
+const MAX_ACC = 80;        /* 오차 80m 넘는 위치는 안 보냄 */
+$('email').value = STAFF_EMAIL;
+if (!BE.LIVE) $('demoTag').innerHTML = '<span class="demo">연습 모드 · 비밀번호 아무거나 넣어도 돼요</span>';
+try { me = localStorage.getItem('xmas_npc') || null; } catch (e) {}
+
+async function doLogin() {
+  $('loginErr').textContent = '';
+  try { await BE.login($('email').value.trim(), $('pw').value); }
+  catch (e) { $('loginErr').textContent = '로그인 실패: 이메일·비밀번호를 확인해 주세요'; }
+}
+async function logout() { if (running) await stopRun(); await BE.logout(); }
+function show(id) { ['loginCard', 'pickCard', 'runCard'].forEach(k => $(k).classList.toggle('hide', k !== id)); }
+function renderPick() {
+  $('pickGrid').innerHTML = SANTAS.map(s => `<div class="pick${me === s.id ? ' on' : ''}" style="--c:${s.color}" onclick="choose('${s.id}')">${santaSVG(s.color, false, 56)}<span>${escHTML(s.name)}</span></div>`).join('');
+}
+function choose(id) { me = id; try { localStorage.setItem('xmas_npc', id); } catch (e) {} renderRun(); }
+function renderRun() {
+  const s = SANTA_BY_ID[me]; if (!s) { show('pickCard'); renderPick(); return; }
+  $('meCard').innerHTML = `${santaSVG(s.color, false, 54)}<div><div class="nm">${escHTML(s.name)}</div><div class="tg">${escHTML(s.tag)}</div></div><button onclick="changeSanta()">바꾸기</button>`;
+  show('runCard');
+}
+function changeSanta() { if (running) { alert('먼저 위치 보내기를 멈춰주세요'); return; } show('pickCard'); renderPick(); }
+function setStatus(kind, big, sm) { const el = $('status'); el.className = 'status ' + kind; el.innerHTML = `<div class="big">${big}</div><div class="sm">${sm}</div>`; }
+
+async function keepAwake() {
+  if (!('wakeLock' in navigator)) { $('kWake').textContent = '지원 안 됨 · 자동잠금을 직접 꺼주세요'; return; }
+  try { wakeLock = await navigator.wakeLock.request('screen'); $('kWake').textContent = '✅ 켜짐'; wakeLock.addEventListener('release', () => { if (running) $('kWake').textContent = '⚠️ 꺼짐'; }); }
+  catch (e) { $('kWake').textContent = '⚠️ 실패 · 자동잠금을 직접 꺼주세요'; }
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden && running) { keepAwake(); send(true); } });
+
+function toggleRun() { running ? stopRun() : startRun(); }
+async function startRun() {
+  if (!navigator.geolocation || !window.isSecureContext) { setStatus('bad', '❌ 위치 기능 사용 불가', 'https 주소로 열었는지 확인해 주세요'); return; }
+  running = true; sentCnt = 0; last = null; lastSent = 0;
+  $('toggleBtn').className = 'btn big stop'; $('toggleBtn').textContent = '■ 위치 보내기 멈춤';
+  setStatus('warn', '📡 GPS 찾는 중…', '하늘이 보이는 곳에서 잠시 기다려 주세요');
+  keepAwake(); BE.armDisconnect(me);
+  try { if (navigator.getBattery) { const b = await navigator.getBattery(); const up = () => { bat = Math.round(b.level * 100); $('kBat').textContent = bat + '%' + (b.charging ? ' (충전 중)' : ''); }; up(); b.addEventListener('levelchange', up); b.addEventListener('chargingchange', up); } else $('kBat').textContent = '확인 불가(아이폰)'; } catch (e) {}
+  watchId = navigator.geolocation.watchPosition(onPos, onErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+  clearInterval(beat); beat = setInterval(tick, 5000);
+}
+async function stopRun() {
+  running = false; if (watchId !== null) navigator.geolocation.clearWatch(watchId); watchId = null; clearInterval(beat);
+  try { if (wakeLock) await wakeLock.release(); } catch (e) {} wakeLock = null; $('kWake').textContent = '-';
+  BE.cancelDisconnect(me); await BE.setOff(me).catch(() => {});
+  $('toggleBtn').className = 'btn big go'; $('toggleBtn').textContent = '▶ 출동! 위치 보내기 시작';
+  setStatus('', '☕ 쉬는 중', '손님 지도에서 내 위치가 사라졌어요');
+}
+function onPos(p) {
+  const c = p.coords; $('kAcc').textContent = Math.round(c.accuracy) + 'm' + (c.accuracy > MAX_ACC ? ' (너무 커서 안 보냄)' : '');
+  if (c.accuracy > MAX_ACC) { if (!last) setStatus('warn', '📡 GPS가 약해요', `오차 ${Math.round(c.accuracy)}m · 건물 밖으로 나가 주세요`); return; }
+  last = { lat: c.latitude, lng: c.longitude, acc: c.accuracy, at: Date.now() };
+  send(false);
+}
+function onErr(e) {
+  if (e.code === 1) { setStatus('bad', '❌ 위치 권한이 꺼져 있어요', '브라우저 설정에서 이 사이트의 위치를 "허용"으로 바꾸고 다시 눌러주세요'); stopRun(); return; }
+  if (!last) setStatus('warn', '📡 GPS를 못 찾고 있어요', '휴대폰 위치(GPS)가 켜져 있는지 확인해 주세요');
+}
+function send(force) {
+  if (!running || !last) return; const now = Date.now();
+  if (!force && now - lastSent < MIN_GAP) return;
+  lastSent = now;
+  BE.sendPos(me, { lat: last.lat, lng: last.lng, acc: last.acc, bat }).then(() => { sentCnt++; $('kCnt').textContent = sentCnt; tick(); })
+    .catch(() => setStatus('bad', '❌ 서버로 못 보냈어요', '인터넷 연결을 확인해 주세요. 로그인이 풀렸다면 다시 로그인해 주세요'));
+}
+function tick() {
+  if (!running) return; const now = Date.now();
+  if (last && now - lastSent >= BEAT) send(true);
+  $('kSent').textContent = lastSent ? agoText(now - lastSent) : '-';
+  if (!last) return;
+  const gpsAge = now - last.at, inMap = geoToXY(last.lat, last.lng);
+  if (gpsAge > 60000) setStatus('bad', '⚠️ GPS 신호가 끊겼어요', `${agoText(gpsAge)} 위치가 마지막이에요. 화면이 켜져 있는지, 건물 밖인지 확인해 주세요`);
+  else if (!inMap) setStatus('warn', '🗺️ 축제 지도 밖이에요', '위치는 보내고 있지만 손님 지도 범위 밖이라 안 보여요');
+  else setStatus('ok', '<span class="dot"></span>위치 보내는 중', `손님 지도에 내가 보여요 · 오차 약 ${Math.round(last.acc)}m`);
+}
+
+BE.ready().then(() => BE.onAuth(u => { if (!u) { if (running) stopRun(); show('loginCard'); return; } if (me && SANTA_BY_ID[me]) renderRun(); else { show('pickCard'); renderPick(); } }))
+  .catch(() => { $('loginErr').textContent = '서버에 연결하지 못했어요. 인터넷을 확인하고 새로고침 해주세요'; });
+</script>
+</body></html>
